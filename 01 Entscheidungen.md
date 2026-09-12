@@ -1,0 +1,44 @@
+# Flur-Tablet: Entscheidungen
+
+Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Jede Zeile: was, warum, Status. Wenn etwas rückgängig gemacht wird, alte Zeile stehen lassen und neue Zeile ergänzen.
+
+## 2026-09-12 (Nachmittag, nach erstem Anschauen)
+
+| Entscheidung | Warum | Status |
+|---|---|---|
+| Ecken-Langdruck unterdrückt Textmarkierung (Desktop) und System-Langdruck-Geste (iOS), zeigt beim Halten einen Ring. Zusätzlich Shift+E und `?eltern=1` für den Rechner | In Safari am Mac ging der Langdruck nicht | umgesetzt, auf dem iPad noch nicht getestet |
+| Auch der Sechsjährige bekommt das Plus für eigene Aufgaben. Text ist optional, ohne Text heißt die Aufgabe wie das gewählte Icon (Buch, Musik, Tier). Tastatur öffnet sich bei ihm nicht automatisch | Er hat danach gefragt | umgesetzt |
+| Kind 1 ist der Sechsjährige (Icons), Kind 2 der Neunjährige (Text, Plus für eigene Aufgaben) | Erste Fassung hatte die Alter vertauscht | umgesetzt |
+| Beim Sechsjährigen ist die ganze Karte Tippfläche, Kinder-Elemente in der Karte fangen keine Events | Ein Kind trifft nicht den kleinen Kreis | umgesetzt |
+| Kind-Farbe frei wählbar aus 10 gedämpften Tönen (Salbei, Staubblau, Sand, Mauve, Terrakotta, Olive, Schiefer, Rosé, Petrol, Ocker) | "Nicht vom Tablet angeschrien werden" | umgesetzt |
+| Feiersound, kurz, synthetisch (vier Töne, unter einer Sekunde), abschaltbar unter Zeiten, Default an | Julias Wunsch. Sound nur bei "Spalte fertig", nicht bei jedem Haken | umgesetzt |
+| Abendliste für den ersten Test: Tisch abräumen, Zähne putzen, Duschen oder baden, Schlafanzug, an allen Tagen für beide | Test am Abend des 12.09. | umgesetzt, im Elternbereich änderbar |
+| Config bekommt eine Versionsnummer; ältere gespeicherte Config wird durch die neuen Defaults ersetzt | Sonst kommen Änderungen an den Defaults nicht bei Julia an | umgesetzt. Nebenwirkung: Eigene Änderungen im Elternbereich gehen bei einem Versionssprung verloren |
+
+## 2026-09-12 (Vormittag, Konzeptphase)
+
+| Entscheidung | Warum | Status |
+|---|---|---|
+| Zielgerät iPad Air 1 mit iOS 12, deshalb eine HTML-Datei ohne Framework, ES2017, kein Flex-gap, keine Emoji, Inline-SVG | Safari 12 kann vieles Moderne nicht, App Store fällt weg | gesetzt |
+| Web-Seite auf dem Homescreen im Vollbild, Guided Access | Einzige realistische Kiosk-Form für ein altes iPad | gesetzt |
+| Morgen- und Abendliste zeitgesteuert, nicht als zwei Spalten | Spalten gehören den Kindern. Zwei Kinder mal zwei Tageszeiten wären vier Spalten | gesetzt |
+| Eine Spalte pro Kind, zwei Lesestufen (Icon-Tiles / Textzeilen), pro Kind einstellbar | Geschwistervergleich vermeiden, Lesestufe passt sich an | gesetzt |
+| Tippen setzt Haken, nochmal Tippen nimmt ihn weg. Keine Dialoge, keine Wischgesten | Fehltipps müssen folgenlos sein | gesetzt |
+| Erledigte Zeilen bleiben an ihrer Position, werden nur heller | Sonst verliert der Sechsjährige die Orientierung | gesetzt |
+| Um Mitternacht alles zurück, keine Spuren von gestern | Keine Punkte-Ökonomie durch die Hintertür | gesetzt |
+| Der Abend kennt den nächsten Tag: Aktivität morgen erzeugt "packen" heute Abend automatisch | Läuft über den Wochenplan, keine Extra-Regel | umgesetzt |
+| Nachricht gilt nur für heute, um Mitternacht leer | Keine Woche alte Info im Flur | umgesetzt |
+| Elternbereich per drei Sekunden Druck auf die obere rechte Ecke, kein Passwort | Config ist nicht spannend genug, um sie zu schützen | umgesetzt |
+| Nachtmodus ab 19:00 über die Uhrzeit, nicht über die Systemeinstellung | Safari 12 kennt prefers-color-scheme nicht | umgesetzt |
+| Datenhaltung (Heimserver, Cloud, nur iPad) entscheidet Julias Mann | Technik ist seine Rolle; die UI ist für alle drei Varianten gleich gebaut | offen |
+| Prototyp speichert im localStorage; alle Zugriffe laufen über ein `Store`-Objekt mit load/save | Backend später austauschbar ohne UI-Änderung | umgesetzt |
+| Simulation von Uhrzeit und Wochentag (Vorschau) hält den Tageszustand nur im Speicher | Erste Fassung hat die echten Haken der Kinder gelöscht | umgesetzt |
+| Modellrollen: Fable Konzept und Verifikation, Sonnet Umsetzung nach Spec | Julias Standardmuster | praktiziert |
+| Eigene Aufgaben des Neunjährigen gelten nur für heute | Sonst wird die Spalte zum Friedhof. "Behalten"-Schalter erst, wenn er danach fragt | umgesetzt |
+
+## Offen
+
+- Backend-Variante (siehe [[Konzept]], Abschnitt Entscheidungsvorlage).
+- Icon-Set und Avatare gestalterisch überarbeiten. Aktuell geometrisch und einfarbig, Avatare sehen sich zu ähnlich.
+- "Gute Nacht"-Ansicht ab 20:30.
+- Eltern sehen vom Handy den Zustand (braucht Server).

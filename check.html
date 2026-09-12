@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Flur-Tablet: Gerätecheck</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #F6F1E7; color: #2B2A28;
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  body { padding: 24px; -webkit-text-size-adjust: 100%; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 20px; color: #6B6660; font-size: 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 17px; }
+  td { padding: 8px 10px; border-bottom: 1px solid #E3DCCF; vertical-align: top; }
+  td:first-child { width: 42%; font-weight: 600; }
+  .ok { color: #2E7D5B; font-weight: 700; }
+  .no { color: #8A6D3B; font-weight: 700; }
+  .val { color: #6B6660; font-size: 15px; }
+  .emoji { font-size: 40px; line-height: 1.2; }
+  #tap { display: block; width: 100%; height: 120px; margin: 24px 0; border: 0; border-radius: 20px;
+    background: #7FB5D9; color: #fff; font-size: 30px; font-weight: 700;
+    -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none;
+    -webkit-transition: -webkit-transform .12s; transition: transform .12s; }
+  #tap.pressed { -webkit-transform: scale(.97); transform: scale(.97); background: #5E9BC4; }
+  .box { width: 80px; height: 80px; border-radius: 16px; background: #B7D9A6;
+    -webkit-animation: pulse 1.4s ease-in-out infinite alternate; animation: pulse 1.4s ease-in-out infinite alternate; }
+  @-webkit-keyframes pulse { from { -webkit-transform: scale(.85); opacity: .6; } to { -webkit-transform: scale(1); opacity: 1; } }
+  @keyframes pulse { from { transform: scale(.85); opacity: .6; } to { transform: scale(1); opacity: 1; } }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-gap: 8px; }
+  .grid div { background: #E9DFCB; height: 30px; border-radius: 8px; }
+  .flexgap { display: flex; gap: 20px; }
+  .flexgap div { width: 40px; height: 20px; background: #D8C7E8; }
+</style>
+</head>
+<body>
+<h1>Flur-Tablet: Gerätecheck</h1>
+<p class="sub">Einmal auf dem iPad öffnen. Alles auf dieser Seite ist harmlos und speichert nur einen Zähler.</p>
+
+<button id="tap">Hier tippen (Zähler: <span id="count">0</span>)</button>
+
+<table id="t"></table>
+
+<p style="margin-top:24px"><strong>Animation</strong> (soll weich pulsieren):</p>
+<div class="box"></div>
+
+<p><strong>CSS Grid</strong> (drei gleich breite Kästen nebeneinander):</p>
+<div class="grid"><div></div><div></div><div></div></div>
+
+<p><strong>Flexbox gap</strong> (zwei Kästen mit Abstand, wenn kein Abstand: gap fehlt, wie erwartet):</p>
+<div class="flexgap" id="flexgap"><div></div><div></div></div>
+
+<p><strong>Emoji-Stand</strong> (was als Kästchen erscheint, kennt dieses iOS nicht):</p>
+<p class="emoji">🥪 🍱 👟 🦷 🪥 🧴 🩳 🥾 🧸 🪁 🐢 🦩 🦕</p>
+
+<script>
+(function () {
+  var rows = [];
+  function has(name, ok, val) { rows.push([name, ok, val || '']); }
+  function syntax(src) { try { new Function(src); return true; } catch (e) { return false; } }
+
+  var ua = navigator.userAgent;
+  var m = ua.match(/OS (\d+)_(\d+)(?:_(\d+))?/);
+  has('iOS-Version (aus User-Agent)', !!m, m ? m[1] + '.' + m[2] + (m[3] ? '.' + m[3] : '') : ua);
+  has('Vollbild vom Homescreen (standalone)', navigator.standalone === true, navigator.standalone === true ? 'ja' : 'nein, gerade in Safari geöffnet');
+  has('Bildschirm (CSS-Pixel)', true, window.innerWidth + ' x ' + window.innerHeight + ', Pixeldichte ' + (window.devicePixelRatio || 1));
+  has('Ausrichtung', true, window.innerWidth > window.innerHeight ? 'quer' : 'hoch');
+
+  var ls = false, count = 0;
+  try { count = parseInt(localStorage.getItem('flur.check.count') || '0', 10) || 0; localStorage.setItem('flur.check.count', String(count)); ls = true; } catch (e) {}
+  has('localStorage', ls, ls ? 'Zähler überlebt Neuladen: ' + count : 'nicht verfügbar');
+  has('Datum auf Deutsch (Intl)', typeof Intl !== 'undefined', (function () { try { return new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) { return 'Fehler'; } })());
+  has('Uhrzeit des Geräts', true, new Date().toTimeString().slice(0, 8));
+
+  has('async/await', syntax('async function f(){ await 1; }'));
+  has('Optional Chaining ?. (erwartet: nein)', syntax('var a = {}; a?.b;'));
+  has('Nullish ?? (erwartet: nein)', syntax('var a = null ?? 1;'));
+  has('Class fields (erwartet: nein)', syntax('class A { x = 1; }'));
+  has('fetch', typeof fetch === 'function');
+  has('Service Worker', 'serviceWorker' in navigator);
+  has('Object.fromEntries (erwartet: nein)', typeof Object.fromEntries === 'function');
+  has('Array.flat', typeof [].flat === 'function');
+  has('IntersectionObserver', 'IntersectionObserver' in window);
+  has('Wake Lock (erwartet: nein)', 'wakeLock' in navigator);
+  has('Touch-Events', 'ontouchstart' in window);
+
+  var s = document.createElement('div').style;
+  has('CSS Custom Properties', window.CSS && CSS.supports && CSS.supports('--a', '0'));
+  has('CSS Grid', 'grid' in s || 'gridTemplateColumns' in s);
+  has('position: sticky', CSS.supports && (CSS.supports('position', 'sticky') || CSS.supports('position', '-webkit-sticky')));
+  has('CSS min()/clamp() (erwartet: nein)', CSS.supports && CSS.supports('width', 'clamp(1px, 2px, 3px)'));
+  has('aspect-ratio (erwartet: nein)', CSS.supports && CSS.supports('aspect-ratio', '1 / 1'));
+  has('prefers-color-scheme (erwartet: nein)', window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').media === '(prefers-color-scheme: dark)');
+  has('overflow-scrolling: touch', 'webkitOverflowScrolling' in s);
+
+  var table = document.getElementById('t');
+  for (var i = 0; i < rows.length; i++) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + rows[i][0] + '</td><td><span class="' + (rows[i][1] ? 'ok' : 'no') + '">' + (rows[i][1] ? 'ja' : 'nein') + '</span> <span class="val">' + rows[i][2] + '</span></td>';
+    table.appendChild(tr);
+  }
+
+  var btn = document.getElementById('tap'), c = document.getElementById('count');
+  c.textContent = count;
+  function bump() { count++; c.textContent = count; try { localStorage.setItem('flur.check.count', String(count)); } catch (e) {} }
+  btn.addEventListener('touchstart', function () { btn.className = 'pressed'; }, { passive: true });
+  btn.addEventListener('touchend', function () { btn.className = ''; }, { passive: true });
+  btn.addEventListener('click', bump);
+
+  window.setTimeout(function () {
+    var kids = document.getElementById('flexgap').children;
+    var gapWorks = kids[1].getBoundingClientRect().left - kids[0].getBoundingClientRect().right >= 15;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>Flexbox gap (erwartet: nein)</td><td><span class="' + (gapWorks ? 'ok' : 'no') + '">' + (gapWorks ? 'ja' : 'nein') + '</span></td>';
+    table.appendChild(tr);
+  }, 50);
+})();
+</script>
+</body>
+</html>
