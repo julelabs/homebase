@@ -43,7 +43,8 @@ Elternbereich: drei Sekunden auf die obere rechte Ecke drücken. Per JavaScript 
 - Oben CSS mit Custom Properties. Nachtmodus ist die Klasse `night` auf dem Wurzelelement.
 - SVG-Sprite mit `<symbol id="i-...">` für Aufgaben-Icons und Avatare. Neue Icons dort ergänzen und den Namen in `ICON_CHOICES` eintragen.
 - `ICON_PATHS` und `ICON_COLORS`: das Icon-Set (Stil A). Pro Icon ein Markup-String mit den Klassen `p` (Hauptform, Aufgabenfarbe), `s` (Nebenform, Kartenfarbe), `d` (Detaillinie), `k` (Tintenfläche). `iconUse()` liefert dafür Inline-SVG; Namen ohne Eintrag (Avatare, Sonne, Mond) laufen weiter über `<use>` und das Sprite. Neue Icons: Markup in `ICON_PATHS`, Farbe in `ICON_COLORS`, Name in `ICON_CHOICES`, deutscher Standardname in `ICON_LABELS`. Farbwerte Tag in `:root` (`--ic-*`), Nacht in `#app.night`.
-- `AVATAR_PATHS` und `AVATAR_CHOICES`: die zwölf Avatare, gleiche Klassen wie die Icons; der Kreis (`bg`) nimmt `--accent` der Spalte, im Elternbereich wird `--accent` pro Kind inline gesetzt. Augenweiß über `--av-eye` (Tag/Nacht).
+- Nachtmodus: Klasse `night` auf `#app` und auf `#own-overlay` (beide Selektoren tragen die Nacht-Variablen). Der Elternbereich bleibt hell.
+- `AVATAR_PATHS` und `AVATAR_CHOICES`: die zwölf Avatare, gleiche Klassen wie die Icons; der Kreis (`bg`) nimmt `--accent` der Spalte, im Elternbereich wird `--accent` pro Kind inline gesetzt. Gerendert über `avatarUse()`, nicht `iconUse()`, weil Namen wie "owl" in beiden Sets vorkommen. Augenweiß über `--av-eye` (Tag/Nacht).
 - `PALETTE` und `COLOR_CHOICES`: die Kind-Farben (Tag- und Nachtwert).
 - `ICON_LABELS`: Standardname pro Icon für eigene Aufgaben ohne Text.
 - Die Config (Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten, Sound) kommt nur vom Server. Die Ausgangsdaten liegen in `backend/priv/repo/seeds.exs`, die Seeds laufen nur, wenn noch keine Config existiert. Ohne Config zeigt die Seite einen Hinweis statt des Boards.
