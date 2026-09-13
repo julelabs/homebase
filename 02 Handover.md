@@ -8,6 +8,7 @@ Alles in diesem Ordner (`Flur-Tablet/` im Vault "Julia"):
 
 - `src/index.html`: der komplette Prototyp. Eine Datei, CSS, JS und SVG-Icons inline. Etwa 1900 Zeilen.
 - `src/check.html`: Gerätecheck fürs iPad, zeigt iOS-Version und Browser-Fähigkeiten.
+- `backend/`: Phoenix JSON-API mit Postgres (Migrationen, Seeds, Tests, Fly-Config). Setup und API-Übersicht in `backend/README.md`.
 - `Konzept.md`: Produktkonzept, Constraints, Backend-Optionen.
 - `Anleitung Tech-Lead.md`: aufs iPad bringen, Geräteeinstellungen, Server starten.
 - `03 Testprotokoll.md`: Beobachtungen aus den Tests mit den Kindern.
@@ -24,14 +25,14 @@ Drei Sekunden ununterbrochen auf die obere rechte Ecke des Boards drücken (am R
 
 ## Lokal laufen lassen
 
-Doppelklick auf `src/index.html` reicht (file://). Für den Browser-Test über die Chrome-Erweiterung braucht es HTTP:
+Die Seite braucht das Backend: `cd backend && mix phx.server` (Postgres lokal, siehe `backend/README.md`). Am Rechner nimmt die Seite automatisch `http://localhost:4000`, sonst `?api=...` in der Adresse. Für den Browser-Test über die Chrome-Erweiterung braucht es HTTP:
 
 ```
 cd "$HOME/Documents/Vault Julia/Julia/Flur-Tablet"
 python3 -m http.server 8765 --directory src
 ```
 
-Dann `http://localhost:8765/index.html`. Achtung: localStorage von file:// und von localhost sind getrennt. Was in dem einen eingestellt wurde, ist im anderen nicht da.
+Dann `http://localhost:8765/index.html`. Alle Daten liegen in Postgres, file:// und localhost zeigen denselben Stand.
 
 Testparameter: `?zeit=19:30&tag=sat` simuliert Uhrzeit und Wochentag. Während der Simulation werden Haken nicht gespeichert (steht auch unten rechts im Board).
 
@@ -44,9 +45,11 @@ Elternbereich: drei Sekunden auf die obere rechte Ecke drücken. Per JavaScript 
 - `PALETTE` und `COLOR_CHOICES`: die Kind-Farben (Tag- und Nachtwert).
 - `ICON_LABELS`: Standardname pro Icon für eigene Aufgaben ohne Text.
 - `defaultConfig()` mit `CONFIG_VERSION`: Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten, Sound. Wer die Defaults ändert und will, dass sie bei allen ankommen, erhöht `CONFIG_VERSION`. Das ersetzt dann auch die Änderungen, die Julia im Elternbereich gemacht hat.
-- `Store` mit `load`/`save`: die einzige Stelle, die localStorage anfasst (plus `flur.lastReload`). Hier wird später das Backend eingehängt.
+- `Store` mit `loadBoard`/`saveConfig`/`saveDay`/`saveMessage`: die einzige Stelle, die die API anfasst. `apiRequest` wiederholt bei Netzfehlern und 502/503/504 mit Backoff. Kein localStorage.
+- `boot()`: lädt den Zustand, zeigt bis dahin `#loading`, versucht es ohne Verbindung weiter. `tick()` alle 30 Sekunden: Datumswechsel, `refresh()` vom Server, Render.
+- Haken, eigene Aufgaben und Nachricht gelten erst nach Serverbestätigung (`commitDay`, `commitMessage`). Bis dahin ist die Zeile `pending`. Config-Änderungen im Elternbereich gelten sofort lokal und werden im Hintergrund gespeichert.
 - `now()`: die einzige Zeitquelle, berücksichtigt die Simulation. Nie `new Date()` direkt für Logik nehmen.
-- `saveDay()` statt `Store.save('day', ...)`: speichert nur, wenn keine Simulation läuft.
+- `commitDay(next)` statt direkter Mutation von `day`: schickt den ganzen Tag, übernimmt die Serverantwort. In der Simulation bleibt der Zustand nur im Speicher.
 - `render()` baut Kopf und beide Spalten neu. Event-Delegation auf dem Board (`onBoardClick`), Rollen über `data-role`.
 - `playDoneChime()` und `columnComplete()`: Feiersound, wird in `onBoardClick` ausgelöst, wenn eine Spalte durch diesen Tipp komplett wird.
 - Elternbereich: `renderSection...` pro Abschnitt, Aktionen über `data-action` in `handleParentAction` und `handleParentChange`.
@@ -65,12 +68,13 @@ node --check <extrahierter Script-Block>
 - Chrome-Erweiterung im Test: Nach einem `navigate` kommen Klicks erst an, wenn einmal ein Screenshot gemacht wurde. Das ist das Tool, nicht die App.
 - Die Datumszeile zeigt bei simuliertem Wochentag das Datum dieses Wochentags in der aktuellen Woche.
 - Eine Nachricht, die während einer Simulation gespeichert wird, trägt das simulierte Datum und erscheint am echten Tag nicht.
-- Auf dem iPad: Homescreen-Version und Safari-Version haben getrennten localStorage.
+- Der Homescreen-Link merkt sich die Adresse samt `?api=` und `?token=`.
+- Das Tablet fragt alle 30 Sekunden den Server. Eine Fly-Maschine mit Scale-to-zero schläft dadurch tagsüber nie ein.
 - Feiersound braucht auf dem iPad Stummschalter aus. Web Audio wird durch den ersten Tipp freigeschaltet.
 
 ## Nächste sinnvolle Schritte
 
 1. Ergebnis des Abendtests aus [[03 Testprotokoll]] lesen und die UI danach anpassen.
 2. `src/check.html` auf dem iPad öffnen, Ergebnis in [[03 Testprotokoll]] notieren.
-3. Backend-Entscheidung mit dem Tech-Lead, dann `Store` umbauen.
+3. Backend auf Fly anlegen (Kommandos in `backend/README.md`), `DATABASE_URL` setzen, dann die Seite auf dem iPad gegen die Fly-Adresse testen.
 4. Icons und Avatare gestalterisch überarbeiten (Sonnet mit Spec, gegen die Palette prüfen).

@@ -2,6 +2,17 @@
 
 Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Jede Zeile: was, warum, Status. Wenn etwas rückgängig gemacht wird, alte Zeile stehen lassen und neue Zeile ergänzen.
 
+## 2026-09-13
+
+| Entscheidung | Warum | Status |
+|---|---|---|
+| Backend: Phoenix als JSON-API mit Postgres in `backend/`, SPA bleibt eine Datei bei Cloudflare Pages, Backend bei Fly mit Scale-to-zero, vorhandene Postgres | Nachricht vom Handy und Zustand für die Eltern brauchen einen Server; Elixir ist der Hausstack | umgesetzt, Fly-App noch nicht angelegt |
+| Datenmodell: Config als ein JSON-Dokument, Haken, eigene Aufgaben und Nachricht als Tabellen pro Tag | Config ändert sich selten und als Ganzes, der Tageszustand soll in TablePlus lesbar sein | umgesetzt |
+| Schreibende Aufrufe ersetzen immer den ganzen Datensatz (Tag, Config, Nachricht) | Wiederholen nach Netzfehler bleibt unschädlich, nur das Tablet schreibt den Tag | umgesetzt |
+| Haken, eigene Aufgaben und Nachricht gelten erst nach Serverbestätigung, Config-Änderungen im Elternbereich sofort lokal mit Speichern im Hintergrund | Tippen in Namensfeldern darf nicht auf den Server warten | umgesetzt |
+| Kein localStorage mehr, auch nicht für den 03:00-Reload (jetzt: Reload nur, wenn die Seite länger als eine Stunde läuft) | Postgres ist die einzige Datenquelle | umgesetzt |
+| Admin-Bereich als LiveViews kommt später | Erst muss die API laufen | offen |
+
 ## 2026-09-12 (Nachmittag, nach erstem Anschauen)
 
 | Entscheidung | Warum | Status |
@@ -38,7 +49,8 @@ Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Je
 
 ## Offen
 
-- Backend-Variante (siehe [[Konzept]], Abschnitt Entscheidungsvorlage).
+- Fly-App anlegen und `DATABASE_URL` setzen (siehe `backend/README.md`).
+- Admin-Bereich als LiveViews.
 - Icon-Set und Avatare gestalterisch überarbeiten. Aktuell geometrisch und einfarbig, Avatare sehen sich zu ähnlich.
 - "Gute Nacht"-Ansicht ab 20:30.
 - Eltern sehen vom Handy den Zustand (braucht Server).
