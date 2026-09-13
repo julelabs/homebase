@@ -26,7 +26,7 @@ Ergebnis:
 
 ## Gerätecheck iPad
 
-`check.html` auf dem iPad geöffnet am: (Datum)
+`src/check.html` auf dem iPad geöffnet am: (Datum)
 
 iOS-Version laut Seite: 
 Auffälligkeiten (Kästchen bei Emoji, fehlende Features, Tipp-Verzögerung): 

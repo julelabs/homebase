@@ -4,13 +4,13 @@
 
 - `Konzept.md`: Produktkonzept, Constraints, Entscheidungsvorlage für das Backend.
 - `00 Briefing.md`, `01 Entscheidungen.md`, `02 Handover.md`, `03 Testprotokoll.md`: Projektnotizen.
-- `check.html`: Gerätecheck. Einmal auf dem iPad öffnen, zeigt iOS-Version und welche Browser-Features gehen.
-- `index.html`: Der Prototyp. Eine Datei, keine Abhängigkeiten, läuft ohne Server im Browser.
+- `src/check.html`: Gerätecheck. Einmal auf dem iPad öffnen, zeigt iOS-Version und welche Browser-Features gehen.
+- `src/index.html`: Der Prototyp. Eine Datei, keine Abhängigkeiten, läuft ohne Server im Browser.
 - `Anleitung Tech-Lead.md`: diese Datei.
 
 ## Am Rechner ansehen
 
-Doppelklick auf `index.html` reicht. Für ein iPad-ähnliches Fenster: Browserfenster auf etwa 1024 x 768 ziehen.
+Doppelklick auf `src/index.html` reicht. Für ein iPad-ähnliches Fenster: Browserfenster auf etwa 1024 x 768 ziehen.
 
 Testparameter in der Adresszeile: `index.html?zeit=19:30&tag=sat` simuliert Uhrzeit und Wochentag. Ohne Parameter gilt die echte Zeit.
 
@@ -22,7 +22,7 @@ Das iPad braucht die Datei über HTTP im WLAN. Kurzfristig geht ein Rechner im s
 
 ```
 cd "$HOME/Documents/Vault Julia/Julia/Flur-Tablet"
-python3 -m http.server 8765
+python3 -m http.server 8765 --directory src
 ```
 
 Dann am iPad in Safari `http://<IP des Rechners>:8765/index.html` öffnen (die IP steht unter Systemeinstellungen > Netzwerk). Für den Dauerbetrieb gehört die Datei auf einen Server, der immer läuft (siehe Entscheidungsvorlage im Konzept).
@@ -45,4 +45,4 @@ Wenn eine Spalte komplett ist, spielt die Seite einen kurzen synthetischen Klang
 
 - Um Mitternacht setzt sie alle Haken zurück und löscht die Nachricht.
 - Um 03:00 lädt sie sich einmal neu, damit sie über Wochen stabil bleibt.
-- Alle Daten liegen im localStorage des iPads (Variante C im Konzept). Für Nachrichten vom Handy braucht es einen Server, dann wird nur das `Store`-Objekt in `index.html` ausgetauscht.
+- Alle Daten liegen im localStorage des iPads (Variante C im Konzept). Für Nachrichten vom Handy braucht es einen Server, dann wird nur das `Store`-Objekt in `src/index.html` ausgetauscht.
