@@ -21,7 +21,7 @@ Julia: Produkt, UI/UX, Tests mit den Kindern. Ihr Mann: Technik, Backend, Einbau
 
 ## Elternbereich erreichen
 
-Drei Sekunden ununterbrochen auf die obere rechte Ecke des Boards drücken (am Rechner: Maustaste dort gedrückt halten). Die Zone ist unsichtbar, etwa 140 x 140 Pixel. Während des Haltens erscheint ein Ring, der sich langsam aufbaut. Am Rechner geht auch Shift+E oder `?eltern=1` in der Adresse. Auf dem iPad blockiert die Ecke die System-Langdruck-Geste per preventDefault, sonst bricht iOS den Touch nach etwa einer Sekunde ab. Dann links Kinder (Name, Avatar, Farbe, Lesestufe, Plus erlauben), Zeiten (Umschaltzeiten, Nachtmodus, Feiersound), Wochenplan, Aufgaben, Vorschau.
+Drei Sekunden ununterbrochen auf die obere rechte Ecke des Boards drücken (am Rechner: Maustaste dort gedrückt halten). Die Zone ist unsichtbar, etwa 140 x 140 Pixel. Während des Haltens erscheint ein Ring, der sich langsam aufbaut. Am Rechner geht auch Shift+E oder `?eltern=1` in der Adresse. Auf jedem Gerät geht außerdem: fünfmal innerhalb von 2,5 Sekunden auf das Datum oben links tippen (seit 13.09., weil der Langdruck auf dem iPad im ersten Test nicht auslöste). Auf dem iPad blockiert die Ecke die System-Langdruck-Geste per preventDefault, sonst bricht iOS den Touch nach etwa einer Sekunde ab. Dann links Kinder (Name, Avatar, Farbe, Lesestufe, Plus erlauben), Zeiten (Umschaltzeiten, Nachtmodus, Feiersound), Wochenplan, Aufgaben, Vorschau.
 
 ## Lokal laufen lassen
 
@@ -62,6 +62,12 @@ Kein `?.`, kein `??`, keine Class Fields, kein `Object.fromEntries`, kein `repla
 grep -nE '\?\.|\?\?|Object\.fromEntries|replaceAll' src/index.html
 node --check <extrahierter Script-Block>
 ```
+
+## Fehler auf dem iPad sehen
+
+Die Seite fängt JavaScript-Fehler ab und zeigt sie 15 Sekunden unten links als kleine Zeile ("Fehler: ..."). Die letzten fünf stehen in `window.__errors`. Für echtes Debugging: iPad per Kabel an den Mac, in Safari am Mac das Entwickler-Menü einschalten (Einstellungen > Erweitert), dann Entwickler > iPad > Seite. Das öffnet den Web-Inspector mit Konsole für die Seite auf dem iPad, auch bei iOS 12.
+
+Ton auf iOS: Web Audio spielt nur, wenn die Freigabe innerhalb einer Berührung passiert. `unlockAudio()` startet dafür bei jeder Berührung auf dem Board einen stillen Puffer. Der Feiersound selbst kommt erst nach der Serverbestätigung, deshalb ist diese vorherige Freigabe nötig.
 
 ## Bekannte Eigenheiten
 

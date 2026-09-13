@@ -324,6 +324,24 @@
     -webkit-touch-callout: none;
   }
 
+  /* ---------- Fehleranzeige (fuer das iPad ohne Konsole) ---------- */
+  #error-toast {
+    position: fixed;
+    left: 12px; bottom: 12px;
+    max-width: 70%;
+    z-index: 95;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--text2);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px 10px;
+    display: none;
+    word-break: break-word;
+  }
+  #error-toast.show { display: block; }
+
   /* ---------- Simulationslabel ---------- */
   #sim-label {
     position: fixed;
@@ -738,6 +756,7 @@
 </div>
 
 <div class="corner-hit" id="corner-hit"></div>
+<div id="error-toast"></div>
 <div id="sim-label"></div>
 <div id="loading">Lädt…</div>
 <div id="toast"></div>
@@ -764,6 +783,30 @@
 
 <script>
 (function () {
+  // Fehler sichtbar machen: kleine Zeile unten links, verschwindet nach 15 Sekunden
+  var errorToastTimer = null;
+  window.__errors = [];
+  function showErrorToast(text) {
+    try {
+      window.__errors.push(text);
+      if (window.__errors.length > 5) window.__errors.shift();
+      var el = document.getElementById('error-toast');
+      if (!el) return;
+      el.textContent = 'Fehler: ' + text;
+      el.className = 'show';
+      if (errorToastTimer) clearTimeout(errorToastTimer);
+      errorToastTimer = setTimeout(function () { el.className = ''; }, 15000);
+    } catch (e) {}
+  }
+  window.addEventListener('error', function (e) {
+    var where = e.filename ? ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ')' : '';
+    showErrorToast((e.message || 'unbekannt') + where);
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e.reason;
+    showErrorToast('Promise: ' + (r && r.message ? r.message : String(r)));
+  });
+
   "use strict";
 
   /* ============================================================
@@ -1363,12 +1406,23 @@
      Feiersound (Web Audio, synthetisiert, keine Datei)
      ============================================================ */
   var audioCtx = null;
+  var audioUnlocked = false;
   function unlockAudio() {
+    // iOS gibt Ton nur frei, wenn innerhalb einer Beruehrung ein Puffer gestartet wird.
+    // resume() allein reicht auf iOS 12 nicht. Deshalb bei jeder Beruehrung ein stiller Puffer.
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       if (!audioCtx) audioCtx = new AC();
-      if (audioCtx.state === 'suspended' && audioCtx.resume) audioCtx.resume();
+      if (audioCtx.state !== 'running' && audioCtx.resume) audioCtx.resume();
+      if (!audioUnlocked) {
+        var buf = audioCtx.createBuffer(1, 1, 22050);
+        var src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        src.connect(audioCtx.destination);
+        if (src.start) src.start(0); else if (src.noteOn) src.noteOn(0);
+        audioUnlocked = true;
+      }
     } catch (e) {}
   }
   function playDoneChime() {
@@ -1447,6 +1501,7 @@
     }
   }
   function onBoardPressEnd() {
+    unlockAudio();
     clearPressState();
   }
   function onBoardPressCancel() {
@@ -1599,6 +1654,25 @@
       var tag = (e.target && e.target.tagName || '').toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
       e.preventDefault();
+      openParent();
+    }
+  });
+
+  // Alternative zum Langdruck: fuenfmal innerhalb von 2,5 Sekunden auf das Datum tippen
+  var dateTaps = [];
+  document.getElementById('header').addEventListener('click', function (e) {
+    var el = e.target;
+    var hit = false;
+    while (el && el.id !== 'header') {
+      if (el.id === 'header-date' || el.id === 'header-phase-icon') { hit = true; break; }
+      el = el.parentNode;
+    }
+    if (!hit) return;
+    var t = Date.now();
+    dateTaps.push(t);
+    dateTaps = dateTaps.filter(function (x) { return t - x < 2500; });
+    if (dateTaps.length >= 5) {
+      dateTaps = [];
       openParent();
     }
   });
