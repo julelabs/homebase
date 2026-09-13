@@ -1,29 +1,127 @@
-# Beispieldaten für die lokale Entwicklung: eine Nachricht, ein paar Haken und
-# eine eigene Aufgabe für heute. Mehrfaches Ausführen ist unschädlich.
+# Seeds: die Board-Config aus dem Prototyp (Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten).
+# Wird nur eingespielt, wenn noch keine Config existiert, damit Änderungen aus dem
+# Elternbereich bei einem erneuten Lauf nicht überschrieben werden.
 #
-#     mix run priv/repo/seeds.exs
+#     mix run priv/repo/seeds.exs      # lokal, auf Fly automatisch bei jedem Deploy (Release.setup)
 #
-# Die Config legt das Tablet beim ersten Laden selbst an (Defaults in src/index.html).
+# Im Dev-Modus kommen zusätzlich Beispieldaten für heute dazu (Nachricht, Haken, eigene Aufgabe).
 
 alias Homebase.Board
 
-today = Date.utc_today()
+school_morning = ~w(brotbox flasche schuhe jacke zaehne)
+school_morning_k2 = school_morning ++ ["ranzen"]
+evening = ~w(tisch_ab zaehne duschen schlafanzug)
+weekend_morning = ~w(zaehne zimmer)
 
-{:ok, _} = Board.put_message(today, "Papa holt euch heute ab")
+day = fn morning, evening, activities ->
+  %{"morning" => morning, "evening" => evening, "activities" => activities}
+end
 
-{:ok, _} =
-  Board.put_day(today, %{
-    "checked" => %{"k1" => %{"brotbox" => true}, "k2" => %{"brotbox" => true, "flasche" => true}},
-    "own" => %{
-      "k2" => [
-        %{
-          "id" => "seed-1",
-          "phase" => "morning",
-          "icon" => "library",
-          "label" => "Buch mitnehmen"
-        }
-      ]
+task = fn label, short, icon -> %{"label" => label, "short" => short, "icon" => icon} end
+
+default_config = %{
+  "kids" => [
+    %{
+      "id" => "k1",
+      "name" => "Kind 1",
+      "avatar" => "fox",
+      "color" => "salbei",
+      "literacy" => "icons",
+      "canAddOwn" => true
+    },
+    %{
+      "id" => "k2",
+      "name" => "Kind 2",
+      "avatar" => "dragon",
+      "color" => "staubblau",
+      "literacy" => "text",
+      "canAddOwn" => true
     }
-  })
+  ],
+  # Geordnet, damit die Positionen der Reihenfolge im Prototyp entsprechen.
+  "tasks" =>
+    Jason.OrderedObject.new([
+      {"brotbox", task.("Brotbox in die Küche", "Brotbox", "lunchbox")},
+      {"flasche", task.("Trinkflasche in die Küche", "Flasche", "bottle")},
+      {"schuhe", task.("Schuhe wegräumen", "Schuhe", "shoes")},
+      {"jacke", task.("Jacke aufhängen", "Jacke", "jacket")},
+      {"zaehne", task.("Zähne putzen", "Zähne", "toothbrush")},
+      {"ranzen", task.("Schulranzen packen", "Ranzen", "backpack")},
+      {"hausaufgaben", task.("Hausaufgaben", "Hausaufgaben", "homework")},
+      {"tisch", task.("Tisch decken", "Tisch decken", "table")},
+      {"tisch_ab", task.("Tisch abräumen", "Tisch", "table")},
+      {"duschen", task.("Duschen oder baden", "Duschen", "shower")},
+      {"zimmer", task.("Zimmer aufräumen", "Zimmer", "room")},
+      {"schlafanzug", task.("Schlafanzug anziehen", "Schlafanzug", "pajamas")},
+      {"schwimm_packen", task.("Schwimmsachen packen", "Schwimmen packen", "swim")},
+      {"schwimm_mit", task.("Schwimmsachen mitnehmen", "Schwimmen", "swim")},
+      {"sport_packen", task.("Sportsachen packen", "Sport packen", "sport")},
+      {"sport_mit", task.("Sportsachen mitnehmen", "Sport", "sport")}
+    ]),
+  "activities" =>
+    Jason.OrderedObject.new([
+      {"swim",
+       %{"label" => "Schwimmen", "morning" => "schwimm_mit", "eveningBefore" => "schwimm_packen"}},
+      {"sport",
+       %{"label" => "Sport", "morning" => "sport_mit", "eveningBefore" => "sport_packen"}}
+    ]),
+  "schedule" => %{
+    "k1" => %{
+      "mon" => day.(school_morning, evening, []),
+      "tue" => day.(school_morning, evening, ["swim"]),
+      "wed" => day.(school_morning, evening, []),
+      "thu" => day.(school_morning, evening, []),
+      "fri" => day.(school_morning, evening, []),
+      "sat" => day.(weekend_morning, evening, []),
+      "sun" => day.(weekend_morning, evening, [])
+    },
+    "k2" => %{
+      "mon" => day.(school_morning_k2, evening, []),
+      "tue" => day.(school_morning_k2, evening, []),
+      "wed" => day.(school_morning_k2, evening, []),
+      "thu" => day.(school_morning_k2, evening, ["sport"]),
+      "fri" => day.(school_morning_k2, evening, []),
+      "sat" => day.(weekend_morning, evening, []),
+      "sun" => day.(weekend_morning, evening, [])
+    }
+  },
+  "times" => %{
+    "morningStartsAt" => "06:00",
+    "eveningStartsAt" => "12:00",
+    "nightStartsAt" => "19:00"
+  },
+  "sound" => true
+}
 
-IO.puts("Seeds für #{today} eingespielt.")
+if Board.get_config() do
+  IO.puts("Config vorhanden, Seeds nicht überschrieben.")
+else
+  {:ok, _} = Board.put_config(default_config)
+  IO.puts("Config aus den Prototyp-Defaults eingespielt.")
+end
+
+if Code.ensure_loaded?(Mix) and Mix.env() == :dev do
+  today = Date.utc_today()
+  {:ok, _} = Board.put_message(today, "Papa holt euch heute ab")
+
+  {:ok, _} =
+    Board.put_day(today, %{
+      # Haken-Schlüssel sind "phase:aufgabe", wie das Tablet sie schreibt
+      "checked" => %{
+        "k1" => %{"morning:zaehne" => true, "evening:zaehne" => true},
+        "k2" => %{"morning:brotbox" => true, "morning:flasche" => true}
+      },
+      "own" => %{
+        "k2" => [
+          %{
+            "id" => "seed-1",
+            "phase" => "morning",
+            "icon" => "library",
+            "label" => "Buch mitnehmen"
+          }
+        ]
+      }
+    })
+
+  IO.puts("Beispieldaten für #{today} eingespielt.")
+end

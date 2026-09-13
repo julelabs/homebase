@@ -7,7 +7,9 @@ Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Je
 | Entscheidung | Warum | Status |
 |---|---|---|
 | Backend: Phoenix als JSON-API mit Postgres in `backend/`, SPA bleibt eine Datei bei Cloudflare Pages, Backend bei Fly mit Scale-to-zero, vorhandene Postgres | Nachricht vom Handy und Zustand für die Eltern brauchen einen Server; Elixir ist der Hausstack | umgesetzt, Fly-App noch nicht angelegt |
-| Datenmodell: Config als ein JSON-Dokument, Haken, eigene Aufgaben und Nachricht als Tabellen pro Tag | Config ändert sich selten und als Ganzes, der Tageszustand soll in TablePlus lesbar sein | umgesetzt |
+| Datenmodell: Config als ein JSON-Dokument, Haken, eigene Aufgaben und Nachricht als Tabellen pro Tag | Config ändert sich selten und als Ganzes, der Tageszustand soll in TablePlus lesbar sein | ersetzt, siehe unten |
+| Config relational: Tabellen `kids`, `tasks`, `activities`, `schedule_tasks`, `schedule_activities`, `settings`. Die API liefert und nimmt weiter das Tablet-Format, der Server übersetzt | JSON-Blob war in TablePlus nicht lesbar und für den späteren Admin-Bereich ungeeignet | umgesetzt |
+| Default-Config und JSON-Import raus aus dem Frontend, Ausgangsdaten nur in den Seeds. Der Abschnitt Daten im Elternbereich entfällt | Eine Quelle für die Defaults, kein Config-JSON mehr im Frontend | umgesetzt |
 | Schreibende Aufrufe ersetzen immer den ganzen Datensatz (Tag, Config, Nachricht) | Wiederholen nach Netzfehler bleibt unschädlich, nur das Tablet schreibt den Tag | umgesetzt |
 | Haken, eigene Aufgaben und Nachricht gelten erst nach Serverbestätigung, Config-Änderungen im Elternbereich sofort lokal mit Speichern im Hintergrund | Tippen in Namensfeldern darf nicht auf den Server warten | umgesetzt |
 | Kein localStorage mehr, auch nicht für den 03:00-Reload (jetzt: Reload nur, wenn die Seite länger als eine Stunde läuft) | Postgres ist die einzige Datenquelle | umgesetzt |

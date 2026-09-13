@@ -21,7 +21,7 @@ Julia: Produkt, UI/UX, Tests mit den Kindern. Ihr Mann: Technik, Backend, Einbau
 
 ## Elternbereich erreichen
 
-Drei Sekunden ununterbrochen auf die obere rechte Ecke des Boards drücken (am Rechner: Maustaste dort gedrückt halten). Die Zone ist unsichtbar, etwa 140 x 140 Pixel. Während des Haltens erscheint ein Ring, der sich langsam aufbaut. Am Rechner geht auch Shift+E oder `?eltern=1` in der Adresse. Auf dem iPad blockiert die Ecke die System-Langdruck-Geste per preventDefault, sonst bricht iOS den Touch nach etwa einer Sekunde ab. Dann links Kinder (Name, Avatar, Farbe, Lesestufe, Plus erlauben), Zeiten (Umschaltzeiten, Nachtmodus, Feiersound), Wochenplan, Aufgaben, Vorschau, Daten.
+Drei Sekunden ununterbrochen auf die obere rechte Ecke des Boards drücken (am Rechner: Maustaste dort gedrückt halten). Die Zone ist unsichtbar, etwa 140 x 140 Pixel. Während des Haltens erscheint ein Ring, der sich langsam aufbaut. Am Rechner geht auch Shift+E oder `?eltern=1` in der Adresse. Auf dem iPad blockiert die Ecke die System-Langdruck-Geste per preventDefault, sonst bricht iOS den Touch nach etwa einer Sekunde ab. Dann links Kinder (Name, Avatar, Farbe, Lesestufe, Plus erlauben), Zeiten (Umschaltzeiten, Nachtmodus, Feiersound), Wochenplan, Aufgaben, Vorschau.
 
 ## Lokal laufen lassen
 
@@ -44,7 +44,7 @@ Elternbereich: drei Sekunden auf die obere rechte Ecke drücken. Per JavaScript 
 - SVG-Sprite mit `<symbol id="i-...">` für Aufgaben-Icons und Avatare. Neue Icons dort ergänzen und den Namen in `ICON_CHOICES` eintragen.
 - `PALETTE` und `COLOR_CHOICES`: die Kind-Farben (Tag- und Nachtwert).
 - `ICON_LABELS`: Standardname pro Icon für eigene Aufgaben ohne Text.
-- `defaultConfig()` mit `CONFIG_VERSION`: Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten, Sound. Wer die Defaults ändert und will, dass sie bei allen ankommen, erhöht `CONFIG_VERSION`. Das ersetzt dann auch die Änderungen, die Julia im Elternbereich gemacht hat.
+- Die Config (Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten, Sound) kommt nur vom Server. Die Ausgangsdaten liegen in `backend/priv/repo/seeds.exs`, die Seeds laufen nur, wenn noch keine Config existiert. Ohne Config zeigt die Seite einen Hinweis statt des Boards.
 - `Store` mit `loadBoard`/`saveConfig`/`saveDay`/`saveMessage`: die einzige Stelle, die die API anfasst. `apiRequest` wiederholt bei Netzfehlern und 502/503/504 mit Backoff. Kein localStorage.
 - `boot()`: lädt den Zustand, zeigt bis dahin `#loading`, versucht es ohne Verbindung weiter. `tick()` alle 30 Sekunden: Datumswechsel, `refresh()` vom Server, Render.
 - Haken, eigene Aufgaben und Nachricht gelten erst nach Serverbestätigung (`commitDay`, `commitMessage`). Bis dahin ist die Zeile `pending`. Config-Änderungen im Elternbereich gelten sofort lokal und werden im Hintergrund gespeichert.

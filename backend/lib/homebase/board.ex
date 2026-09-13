@@ -1,6 +1,7 @@
 defmodule Homebase.Board do
   @moduledoc """
   Zugriff auf die drei Datensätze des Flur-Tablets: Config, Tageszustand, Nachricht.
+  Die Config liegt in eigenen Tabellen, siehe `Homebase.Board.Config`.
 
   Der Tageszustand hat dieselbe Form wie im Prototyp:
 
@@ -17,23 +18,11 @@ defmodule Homebase.Board do
 
   ## Config
 
-  @doc "Die gespeicherte Config oder nil, wenn noch keine gespeichert wurde."
-  def get_config do
-    case Repo.one(from c in Config, limit: 1) do
-      nil -> nil
-      %Config{data: data} -> data
-    end
-  end
+  @doc "Die Board-Config in Tablet-Form oder nil, solange die Seeds nicht eingespielt sind."
+  defdelegate get_config, to: Config, as: :load
 
-  @doc "Ersetzt die Config komplett."
-  def put_config(data) do
-    existing = Repo.one(from c in Config, limit: 1) || %Config{}
-
-    case Repo.insert_or_update(Config.changeset(existing, data)) do
-      {:ok, %Config{data: data}} -> {:ok, data}
-      {:error, _changeset} -> {:error, :invalid}
-    end
-  end
+  @doc "Ersetzt die komplette Config (Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten)."
+  defdelegate put_config(data), to: Config, as: :replace
 
   ## Tageszustand
 
