@@ -60,6 +60,6 @@ fly secrets set -a homebase-api API_TOKEN='...'   # optional
 fly deploy
 ```
 
-Danach deployt `.github/workflows/fly.yml` bei jedem Push auf `main`, der `backend/` ändert (braucht das Repo-Secret `FLY_API_TOKEN`). Migrationen und Seeds laufen als `release_command` vor dem Start.
+Danach deployt `.github/workflows/ci.yml` bei jedem Push auf `main`, sobald Tests und SPA-Lint grün sind (braucht das Repo-Secret `FLY_API_TOKEN`). Pull Requests laufen nur durch die Tests. Migrationen und Seeds laufen als `release_command` vor dem Start.
 
 Die SPA erwartet die API unter `https://homebase-api.fly.dev`. Anderer App-Name: `API_BASE` in `../src/index.html` anpassen.

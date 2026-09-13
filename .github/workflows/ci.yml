@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Backend tests and SPA lint
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MIX_ENV: test
+      TEST_DATABASE_URL: ecto://postgres:postgres@localhost/homebase_test
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir and OTP from .tool-versions
+        uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/deps
+            backend/_build
+          key: mix-${{ runner.os }}-${{ hashFiles('.tool-versions', 'backend/mix.lock') }}
+          restore-keys: mix-${{ runner.os }}-
+
+      - run: mix deps.get
+      - run: mix compile --warnings-as-errors
+      - run: mix format --check-formatted
+      - run: mix test
+
+      # Safari 12 auf dem iPad: keine moderne Syntax im Prototyp
+      - name: SPA lint (Safari 12) and syntax check
+        working-directory: .
+        run: |
+          if grep -nE '\?\.|\?\?|Object\.fromEntries|replaceAll' src/index.html; then
+            echo "Syntax gefunden, die Safari 12 nicht kann"; exit 1
+          fi
+          python3 -c "import re;s=open('src/index.html',encoding='utf-8').read();open('/tmp/flur.js','w',encoding='utf-8').write(re.search(r'<script>(.*)</script>',s,re.S).group(1))"
+          node --check /tmp/flur.js
+
+  deploy:
+    name: Deploy backend to Fly.io
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only --strategy immediate
