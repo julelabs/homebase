@@ -1,6 +1,6 @@
 # Flur-Tablet: Briefing
 
-Stand: 2026-09-12. Projektordner: dieser Ordner im Vault. Die Dateien `index.html` (Prototyp) und `check.html` (Gerätecheck) liegen direkt hier.
+Stand: 2026-09-12. Projektordner: dieser Ordner im Vault. Die Dateien `src/index.html` (Prototyp) und `src/check.html` (Gerätecheck) liegen im Unterordner `src/`.
 
 ## Die Idee
 

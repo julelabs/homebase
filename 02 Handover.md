@@ -1,13 +1,13 @@
 # Flur-Tablet: Handover für neue Sessions
 
-Für eine Claude-Session, die dieses Projekt weiterführt. Reihenfolge zum Einlesen: diese Notiz, dann [[00 Briefing]], dann [[01 Entscheidungen]], dann [[Konzept]]. Erst danach `index.html` öffnen.
+Für eine Claude-Session, die dieses Projekt weiterführt. Reihenfolge zum Einlesen: diese Notiz, dann [[00 Briefing]], dann [[01 Entscheidungen]], dann [[Konzept]]. Erst danach `src/index.html` öffnen.
 
 ## Wo was liegt
 
 Alles in diesem Ordner (`Flur-Tablet/` im Vault "Julia"):
 
-- `index.html`: der komplette Prototyp. Eine Datei, CSS, JS und SVG-Icons inline. Etwa 1900 Zeilen.
-- `check.html`: Gerätecheck fürs iPad, zeigt iOS-Version und Browser-Fähigkeiten.
+- `src/index.html`: der komplette Prototyp. Eine Datei, CSS, JS und SVG-Icons inline. Etwa 1900 Zeilen.
+- `src/check.html`: Gerätecheck fürs iPad, zeigt iOS-Version und Browser-Fähigkeiten.
 - `Konzept.md`: Produktkonzept, Constraints, Backend-Optionen.
 - `Anleitung Tech-Lead.md`: aufs iPad bringen, Geräteeinstellungen, Server starten.
 - `03 Testprotokoll.md`: Beobachtungen aus den Tests mit den Kindern.
@@ -24,11 +24,11 @@ Drei Sekunden ununterbrochen auf die obere rechte Ecke des Boards drücken (am R
 
 ## Lokal laufen lassen
 
-Doppelklick auf `index.html` reicht (file://). Für den Browser-Test über die Chrome-Erweiterung braucht es HTTP:
+Doppelklick auf `src/index.html` reicht (file://). Für den Browser-Test über die Chrome-Erweiterung braucht es HTTP:
 
 ```
 cd "$HOME/Documents/Vault Julia/Julia/Flur-Tablet"
-python3 -m http.server 8765
+python3 -m http.server 8765 --directory src
 ```
 
 Dann `http://localhost:8765/index.html`. Achtung: localStorage von file:// und von localhost sind getrennt. Was in dem einen eingestellt wurde, ist im anderen nicht da.
@@ -56,7 +56,7 @@ Elternbereich: drei Sekunden auf die obere rechte Ecke drücken. Per JavaScript 
 Kein `?.`, kein `??`, keine Class Fields, kein `Object.fromEntries`, kein `replaceAll`, keine ES-Module. Kein `gap` in Flexbox (Grid-`gap` geht). Kein `aspect-ratio`, `inset`, `clamp()`, `prefers-color-scheme`, `<dialog>`, `100vh`. Keine Emoji. Nach jeder Änderung:
 
 ```
-grep -nE '\?\.|\?\?|Object\.fromEntries|replaceAll' index.html
+grep -nE '\?\.|\?\?|Object\.fromEntries|replaceAll' src/index.html
 node --check <extrahierter Script-Block>
 ```
 
@@ -71,6 +71,6 @@ node --check <extrahierter Script-Block>
 ## Nächste sinnvolle Schritte
 
 1. Ergebnis des Abendtests aus [[03 Testprotokoll]] lesen und die UI danach anpassen.
-2. `check.html` auf dem iPad öffnen, Ergebnis in [[03 Testprotokoll]] notieren.
+2. `src/check.html` auf dem iPad öffnen, Ergebnis in [[03 Testprotokoll]] notieren.
 3. Backend-Entscheidung mit dem Tech-Lead, dann `Store` umbauen.
 4. Icons und Avatare gestalterisch überarbeiten (Sonnet mit Spec, gegen die Palette prüfen).
