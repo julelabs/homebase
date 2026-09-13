@@ -6,6 +6,7 @@ Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Je
 
 | Entscheidung | Warum | Status |
 |---|---|---|
+| Zwölf Avatare im Stil A: Fuchs, Eule, Drache, Katze, Roboter, Dino, Kaktus, Bär, Klotz, Schweinchen, Würfelkopf, Hai. Kreis in der Kind-Farbe, Figur mit eigenen Farben, eigene Zeichnungen (angelehnt an Minecraft- und Brawl-Stars-Typen, keine Kopien). Vorschau in `design/Avatare.html` | Alte Avatare waren dunkle Kreise mit weißen Formen und sahen sich zu ähnlich | umgesetzt am 13.09. abends |
 | Icon-Stil A "weich gefüllt": eine Zeichnung pro Aufgabe, Hauptform in einer Farbe aus der gedämpften Palette, Nebenformen in Kartenfarbe, Linie in Textfarbe (2,5 px bei 48er Raster). Nachts eigene Farbwerte. Auswahl über `design/Icon-Vergleich.html` (A, B, C nebeneinander) | Farbe und Form zusammen sind für den Sechsjährigen am schnellsten erkennbar; die alten Linien-Icons waren zu abstrakt | umgesetzt am 13.09. abends, Julias Wahl |
 | Icons liegen als Inline-SVG in `ICON_PATHS` (Markup pro Icon) statt als `<use>`-Verweise | CSS-Regeln erreichen die Formen in `<use>`-Verweisen nicht, Füllungen wären unmöglich | umgesetzt |
 | Neue Icons Eule (Duolingo) und Lautsprecher (Hörbuch), dazu die Aufgaben "Duolingo" und "Hörbuch hören" in Seeds und Live-Config | Julias Wunsch | umgesetzt |
