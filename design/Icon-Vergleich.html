@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flur-Tablet: Icon-Vergleich</title>
+<style>
+  :root { --bg:#F6F1E7; --card:#FFFDF8; --ink:#2B2A28; --text2:#6B6660; --line:#E3DCCF;
+    --salbei:#9DB59A; --staubblau:#8FA9C2; --sand:#D4B98A; --terrakotta:#C99A83; --petrol:#7FA8A4; --mauve:#B59BB3; --ocker:#C9A961; --weiss:#FFFDF8; }
+  body.night { --bg:#1F1B18; --card:#2A2521; --ink:#E8DDCB; --text2:#A0958A; --line:#3A332D;
+    --salbei:#7E937C; --staubblau:#73899E; --sand:#AE9871; --terrakotta:#A57E6B; --petrol:#688985; --mauve:#927D91; --ocker:#A48A50; --weiss:#E8DDCB; }
+  body { margin:0; padding:28px 32px 60px; background:var(--bg); color:var(--ink); font-family:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif; transition:background .3s,color .3s; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  p.sub { color:var(--text2); margin:0 0 18px; font-size:15px; max-width:900px; line-height:1.45; }
+  button { font:inherit; font-size:15px; padding:8px 14px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
+  section { margin-top:34px; }
+  h2 { font-size:20px; margin:0 0 2px; }
+  p.desc { color:var(--text2); margin:0 0 14px; font-size:15px; max-width:900px; line-height:1.45; }
+  .grid { display:grid; grid-template-columns:repeat(8, 1fr); grid-gap:12px; max-width:1100px; }
+  .tile { background:var(--card); border-radius:22px; min-height:128px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 6px; }
+  .tile .ico { width:72px; height:72px; }
+  .lbl { font-size:15px; color:var(--text2); margin-top:6px; }
+  .rows { max-width:560px; margin-top:12px; background:var(--card); border-radius:16px; padding:4px 14px; }
+  .row { display:flex; align-items:center; min-height:64px; border-bottom:1px solid var(--line); font-size:22px; }
+  .row:last-child { border-bottom:0; }
+  .row .ico-s { width:44px; height:44px; margin-right:16px; flex:0 0 auto; }
+  .row .chk { margin-left:auto; width:30px; height:30px; border-radius:50%; border:2px solid var(--line); }
+  svg { fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; display:block; }
+
+  /* Referenz: aktuelle Icons */
+  .cur svg { stroke-width:3; color:var(--ink); }
+
+  /* Stil A: weich gefuellt, Strich 2.5, Farbe pro Aufgabe */
+  .A svg { stroke-width:2.5; }
+  .A .p { fill:currentColor; }
+  .A .s { fill:var(--card); }
+  .A .c-salbei { color:var(--salbei); } .A .c-staubblau { color:var(--staubblau); } .A .c-sand { color:var(--sand); }
+  .A .c-terrakotta { color:var(--terrakotta); } .A .c-petrol { color:var(--petrol); } .A .c-mauve { color:var(--mauve); }
+  .A .c-ocker { color:var(--ocker); } .A .c-weiss { color:var(--weiss); }
+
+  /* Stil B: dicke einfarbige Linie, Nebenformen leicht getoent */
+  .B svg { stroke-width:3.6; }
+  .B .s { fill:var(--line); }
+
+  /* Stil C: Silhouette, Details ausgespart */
+  .C svg { stroke-width:2.2; }
+  .C .p { fill:var(--ink); }
+  .C .s { fill:var(--card); stroke:var(--ink); }
+  .C .d { stroke:var(--card); }
+  .C .d.outside { stroke:var(--ink); }
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="cur-lunchbox" viewBox="0 0 48 48">
+      <path d="M8 19h32v18a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3z"/>
+      <path d="M17 19v-4a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4"/>
+      <path d="M20 10h8"/>
+    </symbol>
+<symbol id="cur-bottle" viewBox="0 0 48 48">
+      <path d="M19 9h10v6l3 4v22a3 3 0 0 1-3 3H19a3 3 0 0 1-3-3V19l3-4z"/>
+      <path d="M16 24h16"/>
+    </symbol>
+<symbol id="cur-shoes" viewBox="0 0 48 48">
+      <path d="M7 33c0-3 2-5 5-6l9-4 4 3c4 2 9 3 15 3v6a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/>
+      <path d="M16 27v-6"/>
+    </symbol>
+<symbol id="cur-jacket" viewBox="0 0 48 48">
+      <path d="M14 12L24 18L34 12L44 24L32 28L32 41L16 41L16 28L4 24Z"/>
+      <path d="M24 18v23"/>
+    </symbol>
+<symbol id="cur-toothbrush" viewBox="0 0 48 48">
+      <path d="M10 38l16-16a4 4 0 0 1 6 6L16 44a4 4 0 0 1-6-6z"/>
+      <path d="M32 16l3-3M36 20l3-3M28 12l3-3"/>
+    </symbol>
+<symbol id="cur-shower" viewBox="0 0 48 48">
+      <path d="M6 9h9a9 9 0 0 1 9 9v3"/>
+      <path d="M13 24a11 11 0 0 1 22 0z"/>
+      <path d="M17 30v4M24 30v6M31 30v4M20 40v3M28 40v3"/>
+    </symbol>
+<symbol id="cur-pajamas" viewBox="0 0 48 48">
+      <path d="M15 10l9 3 9-3 6 7-5 5v18a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2V22l-5-5z"/>
+      <circle cx="24" cy="28" r="1.6" fill="currentColor" stroke="none"/>
+      <circle cx="24" cy="34" r="1.6" fill="currentColor" stroke="none"/>
+    </symbol>
+<symbol id="cur-backpack" viewBox="0 0 48 48">
+      <path d="M12 22a12 10 0 0 1 24 0v14a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4z"/>
+      <path d="M18 10v10M30 10v10"/>
+      <rect x="18" y="26" width="12" height="9" rx="3"/>
+    </symbol>
+
+<symbol id="n-lunchbox" viewBox="0 0 48 48"><rect class="p" x="6" y="18" width="36" height="22" rx="5"/>
+<path class="d outside" d="M17 18v-3a7 7 0 0 1 14 0v3"/>
+<rect class="s" x="19" y="18" width="10" height="7" rx="2"/>
+<path class="d" d="M6 30h36"/></symbol>
+<symbol id="n-bottle" viewBox="0 0 48 48"><path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>
+<rect class="s" x="19" y="5" width="10" height="6" rx="2"/>
+<path class="d outside" d="M21 11v5M27 11v5"/>
+<rect class="s" x="17" y="25" width="14" height="8"/></symbol>
+<symbol id="n-shoes" viewBox="0 0 48 48"><path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/>
+<path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+<path class="d" d="M19 23l4 4M23 20l4 4"/></symbol>
+<symbol id="n-jacket" viewBox="0 0 48 48"><path class="d outside" d="M24 12V9a3 3 0 1 1 3-3"/>
+<path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/>
+<path class="s" d="M19 19l5 6 5-6z"/>
+<path class="d" d="M24 25v18"/></symbol>
+<symbol id="n-toothbrush" viewBox="0 0 48 48"><path class="p" d="M16 7c-6 0-9 5-8 11l4 19c1 4 5 4 6 0l2-8c1-3 4-3 5 0l2 8c1 4 5 4 6 0l4-19c1-6-2-11-8-11-3 0-5 2-7 2s-4-2-6-2z"/>
+<path class="d outside" d="M39 6v5M36.5 8.5h5"/></symbol>
+<symbol id="n-shower" viewBox="0 0 48 48"><path class="d outside" d="M6 10h10a8 8 0 0 1 8 8v2"/>
+<path class="p" d="M12 27l4-7h16l4 7z"/>
+<path class="d outside" d="M17 33v4M24 33v6M31 33v4M20 42v2M28 42v2"/></symbol>
+<symbol id="n-pajamas" viewBox="0 0 48 48"><path class="p" d="M16 8l8 3 8-3 10 8-5 6-3-2v22H14V20l-3 2-5-6z"/>
+<path class="d" d="M20 9l4 5 4-5"/>
+<circle class="s" cx="24" cy="23" r="1.7"/><circle class="s" cx="24" cy="30" r="1.7"/><circle class="s" cx="24" cy="37" r="1.7"/>
+<path class="s" d="M32 22a5 5 0 1 0 3 8 4 4 0 0 1-3-8z"/></symbol>
+<symbol id="n-backpack" viewBox="0 0 48 48"><rect class="p" x="11" y="13" width="26" height="29" rx="7"/>
+<path class="d outside" d="M18 13v-2a6 6 0 0 1 12 0v2"/>
+<rect class="s" x="17" y="27" width="14" height="10" rx="3"/>
+<path class="d" d="M11 23h26"/></symbol>
+
+</svg>
+
+<h1>Icon-Vergleich</h1>
+<p class="sub">Dieselben acht Aufgaben in drei Stilen, oben als Tiles für den Sechsjährigen (72 Pixel), darunter als Zeilen für den Neunjährigen (44 Pixel). Die drei Stile teilen sich eine Zeichnung, nur Füllung und Strichstärke unterscheiden sich. Wer sich für einen Stil entscheidet, bekommt automatisch alle 21 Icons konsistent. <button onclick="document.body.classList.toggle('night')">Tag / Nacht umschalten</button></p>
+
+<section class="cur">
+  <h2>Referenz: aktuell</h2>
+  <p class="desc">Dünne Linie, geometrisch. Funktional, aber wenig Charakter, und aus zwei Metern verschwimmt die Jacke mit dem Schlafanzug.</p>
+  <div class="grid"><div class="tile cur"><svg class="ico c-salbei" viewBox="0 0 48 48">
+      <path d="M8 19h32v18a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3z"/>
+      <path d="M17 19v-4a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4"/>
+      <path d="M20 10h8"/>
+    </svg><div class="lbl">Brotbox</div></div><div class="tile cur"><svg class="ico c-staubblau" viewBox="0 0 48 48">
+      <path d="M19 9h10v6l3 4v22a3 3 0 0 1-3 3H19a3 3 0 0 1-3-3V19l3-4z"/>
+      <path d="M16 24h16"/>
+    </svg><div class="lbl">Flasche</div></div><div class="tile cur"><svg class="ico c-sand" viewBox="0 0 48 48">
+      <path d="M7 33c0-3 2-5 5-6l9-4 4 3c4 2 9 3 15 3v6a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/>
+      <path d="M16 27v-6"/>
+    </svg><div class="lbl">Schuhe</div></div><div class="tile cur"><svg class="ico c-terrakotta" viewBox="0 0 48 48">
+      <path d="M14 12L24 18L34 12L44 24L32 28L32 41L16 41L16 28L4 24Z"/>
+      <path d="M24 18v23"/>
+    </svg><div class="lbl">Jacke</div></div><div class="tile cur"><svg class="ico c-weiss" viewBox="0 0 48 48">
+      <path d="M10 38l16-16a4 4 0 0 1 6 6L16 44a4 4 0 0 1-6-6z"/>
+      <path d="M32 16l3-3M36 20l3-3M28 12l3-3"/>
+    </svg><div class="lbl">Zähne</div></div><div class="tile cur"><svg class="ico c-petrol" viewBox="0 0 48 48">
+      <path d="M6 9h9a9 9 0 0 1 9 9v3"/>
+      <path d="M13 24a11 11 0 0 1 22 0z"/>
+      <path d="M17 30v4M24 30v6M31 30v4M20 40v3M28 40v3"/>
+    </svg><div class="lbl">Duschen</div></div><div class="tile cur"><svg class="ico c-mauve" viewBox="0 0 48 48">
+      <path d="M15 10l9 3 9-3 6 7-5 5v18a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2V22l-5-5z"/>
+      <circle cx="24" cy="28" r="1.6" fill="currentColor" stroke="none"/>
+      <circle cx="24" cy="34" r="1.6" fill="currentColor" stroke="none"/>
+    </svg><div class="lbl">Schlafanzug</div></div><div class="tile cur"><svg class="ico c-ocker" viewBox="0 0 48 48">
+      <path d="M12 22a12 10 0 0 1 24 0v14a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4z"/>
+      <path d="M18 10v10M30 10v10"/>
+      <rect x="18" y="26" width="12" height="9" rx="3"/>
+    </svg><div class="lbl">Ranzen</div></div></div><div class="rows"><div class="row cur"><svg class="ico-s c-salbei" viewBox="0 0 48 48">
+      <path d="M8 19h32v18a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3z"/>
+      <path d="M17 19v-4a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4"/>
+      <path d="M20 10h8"/>
+    </svg><span>Brotbox in die Küche</span><span class="chk"></span></div><div class="row cur"><svg class="ico-s c-staubblau" viewBox="0 0 48 48">
+      <path d="M19 9h10v6l3 4v22a3 3 0 0 1-3 3H19a3 3 0 0 1-3-3V19l3-4z"/>
+      <path d="M16 24h16"/>
+    </svg><span>Trinkflasche in die Küche</span><span class="chk"></span></div><div class="row cur"><svg class="ico-s c-sand" viewBox="0 0 48 48">
+      <path d="M7 33c0-3 2-5 5-6l9-4 4 3c4 2 9 3 15 3v6a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/>
+      <path d="M16 27v-6"/>
+    </svg><span>Schuhe wegräumen</span><span class="chk"></span></div><div class="row cur"><svg class="ico-s c-terrakotta" viewBox="0 0 48 48">
+      <path d="M14 12L24 18L34 12L44 24L32 28L32 41L16 41L16 28L4 24Z"/>
+      <path d="M24 18v23"/>
+    </svg><span>Jacke aufhängen</span><span class="chk"></span></div></div>
+</section>
+
+<section class="A">
+  <h2>Stil A: Weich gefüllt</h2>
+  <p class="desc">Jede Aufgabe hat eine Farbe aus der gedämpften Palette, die Form ist gefüllt, die Linie bleibt dunkel. Wirkt wie Sticker aus dem Bilderbuch. Beste Erkennbarkeit für ein Kind, das noch nicht liest, weil Farbe und Form zusammen arbeiten. Nachts werden die Füllungen automatisch dunkler.</p>
+  <div class="grid"><div class="tile A"><svg class="ico c-salbei" viewBox="0 0 48 48"><rect class="p" x="6" y="18" width="36" height="22" rx="5"/>
+<path class="d outside" d="M17 18v-3a7 7 0 0 1 14 0v3"/>
+<rect class="s" x="19" y="18" width="10" height="7" rx="2"/>
+<path class="d" d="M6 30h36"/></svg><div class="lbl">Brotbox</div></div><div class="tile A"><svg class="ico c-staubblau" viewBox="0 0 48 48"><path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>
+<rect class="s" x="19" y="5" width="10" height="6" rx="2"/>
+<path class="d outside" d="M21 11v5M27 11v5"/>
+<rect class="s" x="17" y="25" width="14" height="8"/></svg><div class="lbl">Flasche</div></div><div class="tile A"><svg class="ico c-sand" viewBox="0 0 48 48"><path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/>
+<path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+<path class="d" d="M19 23l4 4M23 20l4 4"/></svg><div class="lbl">Schuhe</div></div><div class="tile A"><svg class="ico c-terrakotta" viewBox="0 0 48 48"><path class="d outside" d="M24 12V9a3 3 0 1 1 3-3"/>
+<path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/>
+<path class="s" d="M19 19l5 6 5-6z"/>
+<path class="d" d="M24 25v18"/></svg><div class="lbl">Jacke</div></div><div class="tile A"><svg class="ico c-weiss" viewBox="0 0 48 48"><path class="p" d="M16 7c-6 0-9 5-8 11l4 19c1 4 5 4 6 0l2-8c1-3 4-3 5 0l2 8c1 4 5 4 6 0l4-19c1-6-2-11-8-11-3 0-5 2-7 2s-4-2-6-2z"/>
+<path class="d outside" d="M39 6v5M36.5 8.5h5"/></svg><div class="lbl">Zähne</div></div><div class="tile A"><svg class="ico c-petrol" viewBox="0 0 48 48"><path class="d outside" d="M6 10h10a8 8 0 0 1 8 8v2"/>
+<path class="p" d="M12 27l4-7h16l4 7z"/>
+<path class="d outside" d="M17 33v4M24 33v6M31 33v4M20 42v2M28 42v2"/></svg><div class="lbl">Duschen</div></div><div class="tile A"><svg class="ico c-mauve" viewBox="0 0 48 48"><path class="p" d="M16 8l8 3 8-3 10 8-5 6-3-2v22H14V20l-3 2-5-6z"/>
+<path class="d" d="M20 9l4 5 4-5"/>
+<circle class="s" cx="24" cy="23" r="1.7"/><circle class="s" cx="24" cy="30" r="1.7"/><circle class="s" cx="24" cy="37" r="1.7"/>
+<path class="s" d="M32 22a5 5 0 1 0 3 8 4 4 0 0 1-3-8z"/></svg><div class="lbl">Schlafanzug</div></div><div class="tile A"><svg class="ico c-ocker" viewBox="0 0 48 48"><rect class="p" x="11" y="13" width="26" height="29" rx="7"/>
+<path class="d outside" d="M18 13v-2a6 6 0 0 1 12 0v2"/>
+<rect class="s" x="17" y="27" width="14" height="10" rx="3"/>
+<path class="d" d="M11 23h26"/></svg><div class="lbl">Ranzen</div></div></div>
+  <div class="rows"><div class="row A"><svg class="ico-s c-salbei" viewBox="0 0 48 48"><rect class="p" x="6" y="18" width="36" height="22" rx="5"/>
+<path class="d outside" d="M17 18v-3a7 7 0 0 1 14 0v3"/>
+<rect class="s" x="19" y="18" width="10" height="7" rx="2"/>
+<path class="d" d="M6 30h36"/></svg><span>Brotbox in die Küche</span><span class="chk"></span></div><div class="row A"><svg class="ico-s c-staubblau" viewBox="0 0 48 48"><path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>
+<rect class="s" x="19" y="5" width="10" height="6" rx="2"/>
+<path class="d outside" d="M21 11v5M27 11v5"/>
+<rect class="s" x="17" y="25" width="14" height="8"/></svg><span>Trinkflasche in die Küche</span><span class="chk"></span></div><div class="row A"><svg class="ico-s c-sand" viewBox="0 0 48 48"><path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/>
+<path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+<path class="d" d="M19 23l4 4M23 20l4 4"/></svg><span>Schuhe wegräumen</span><span class="chk"></span></div><div class="row A"><svg class="ico-s c-terrakotta" viewBox="0 0 48 48"><path class="d outside" d="M24 12V9a3 3 0 1 1 3-3"/>
+<path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/>
+<path class="s" d="M19 19l5 6 5-6z"/>
+<path class="d" d="M24 25v18"/></svg><span>Jacke aufhängen</span><span class="chk"></span></div></div>
+</section>
+
+<section class="B">
+  <h2>Stil B: Dick und ruhig</h2>
+  <p class="desc">Wie heute, aber mit deutlich stärkerer Linie und leicht getönten Nebenformen (Deckel, Sohle, Tasche). Einfarbig, deshalb am ruhigsten im Flur und am nächsten am jetzigen Look. Braucht etwas mehr Nähe zum Erkennen als A.</p>
+  <div class="grid"><div class="tile B"><svg class="ico c-salbei" viewBox="0 0 48 48"><rect class="p" x="6" y="18" width="36" height="22" rx="5"/>
+<path class="d outside" d="M17 18v-3a7 7 0 0 1 14 0v3"/>
+<rect class="s" x="19" y="18" width="10" height="7" rx="2"/>
+<path class="d" d="M6 30h36"/></svg><div class="lbl">Brotbox</div></div><div class="tile B"><svg class="ico c-staubblau" viewBox="0 0 48 48"><path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>
+<rect class="s" x="19" y="5" width="10" height="6" rx="2"/>
+<path class="d outside" d="M21 11v5M27 11v5"/>
+<rect class="s" x="17" y="25" width="14" height="8"/></svg><div class="lbl">Flasche</div></div><div class="tile B"><svg class="ico c-sand" viewBox="0 0 48 48"><path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/>
+<path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+<path class="d" d="M19 23l4 4M23 20l4 4"/></svg><div class="lbl">Schuhe</div></div><div class="tile B"><svg class="ico c-terrakotta" viewBox="0 0 48 48"><path class="d outside" d="M24 12V9a3 3 0 1 1 3-3"/>
+<path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/>
+<path class="s" d="M19 19l5 6 5-6z"/>
+<path class="d" d="M24 25v18"/></svg><div class="lbl">Jacke</div></div><div class="tile B"><svg class="ico c-weiss" viewBox="0 0 48 48"><path class="p" d="M16 7c-6 0-9 5-8 11l4 19c1 4 5 4 6 0l2-8c1-3 4-3 5 0l2 8c1 4 5 4 6 0l4-19c1-6-2-11-8-11-3 0-5 2-7 2s-4-2-6-2z"/>
+<path class="d outside" d="M39 6v5M36.5 8.5h5"/></svg><div class="lbl">Zähne</div></div><div class="tile B"><svg class="ico c-petrol" viewBox="0 0 48 48"><path class="d outside" d="M6 10h10a8 8 0 0 1 8 8v2"/>
+<path class="p" d="M12 27l4-7h16l4 7z"/>
+<path class="d outside" d="M17 33v4M24 33v6M31 33v4M20 42v2M28 42v2"/></svg><div class="lbl">Duschen</div></div><div class="tile B"><svg class="ico c-mauve" viewBox="0 0 48 48"><path class="p" d="M16 8l8 3 8-3 10 8-5 6-3-2v22H14V20l-3 2-5-6z"/>
+<path class="d" d="M20 9l4 5 4-5"/>
+<circle class="s" cx="24" cy="23" r="1.7"/><circle class="s" cx="24" cy="30" r="1.7"/><circle class="s" cx="24" cy="37" r="1.7"/>
+<path class="s" d="M32 22a5 5 0 1 0 3 8 4 4 0 0 1-3-8z"/></svg><div class="lbl">Schlafanzug</div></div><div class="tile B"><svg class="ico c-ocker" viewBox="0 0 48 48"><rect class="p" x="11" y="13" width="26" height="29" rx="7"/>
+<path class="d outside" d="M18 13v-2a6 6 0 0 1 12 0v2"/>
+<rect class="s" x="17" y="27" width="14" height="10" rx="3"/>
+<path class="d" d="M11 23h26"/></svg><div class="lbl">Ranzen</div></div></div>
+  <div class="rows"><div class="row B"><svg class="ico-s c-salbei" viewBox="0 0 48 48"><rect class="p" x="6" y="18" width="36" height="22" rx="5"/>
+<path class="d outside" d="M17 18v-3a7 7 0 0 1 14 0v3"/>
+<rect class="s" x="19" y="18" width="10" height="7" rx="2"/>
+<path class="d" d="M6 30h36"/></svg><span>Brotbox in die Küche</span><span class="chk"></span></div><div class="row B"><svg class="ico-s c-staubblau" viewBox="0 0 48 48"><path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>
+<rect class="s" x="19" y="5" width="10" height="6" rx="2"/>
+<path class="d outside" d="M21 11v5M27 11v5"/>
+<rect class="s" x="17" y="25" width="14" height="8"/></svg><span>Trinkflasche in die Küche</span><span class="chk"></span></div><div class="row B"><svg class="ico-s c-sand" viewBox="0 0 48 48"><path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/>
+<path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+<path class="d" d="M19 23l4 4M23 20l4 4"/></svg><span>Schuhe wegräumen</span><span class="chk"></span></div><div class="row B"><svg class="ico-s c-terrakotta" viewBox="0 0 48 48"><path class="d outside" d="M24 12V9a3 3 0 1 1 3-3"/>
+<path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/>
+<path class="s" d="M19 19l5 6 5-6z"/>
+<path class="d" d="M24 25v18"/></svg><span>Jacke aufhängen</span><span class="chk"></span></div></div>
+</section>
+
+<section class="C">
+  <h2>Stil C: Silhouette</h2>
+  <p class="desc">Volle Fläche in Tintenfarbe, Details ausgespart. Aus großer Entfernung am klarsten, wirkt aber am schwersten und nachts eher wie Piktogramme im Bahnhof als wie ein Helfer im Flur.</p>
+  <div class="grid"><div class="tile C"><svg class="ico c-salbei" viewBox="0 0 48 48"><rect class="p" x="6" y="18" width="36" height="22" rx="5"/>
+<path class="d outside" d="M17 18v-3a7 7 0 0 1 14 0v3"/>
+<rect class="s" x="19" y="18" width="10" height="7" rx="2"/>
+<path class="d" d="M6 30h36"/></svg><div class="lbl">Brotbox</div></div><div class="tile C"><svg class="ico c-staubblau" viewBox="0 0 48 48"><path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>
+<rect class="s" x="19" y="5" width="10" height="6" rx="2"/>
+<path class="d outside" d="M21 11v5M27 11v5"/>
+<rect class="s" x="17" y="25" width="14" height="8"/></svg><div class="lbl">Flasche</div></div><div class="tile C"><svg class="ico c-sand" viewBox="0 0 48 48"><path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/>
+<path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+<path class="d" d="M19 23l4 4M23 20l4 4"/></svg><div class="lbl">Schuhe</div></div><div class="tile C"><svg class="ico c-terrakotta" viewBox="0 0 48 48"><path class="d outside" d="M24 12V9a3 3 0 1 1 3-3"/>
+<path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/>
+<path class="s" d="M19 19l5 6 5-6z"/>
+<path class="d" d="M24 25v18"/></svg><div class="lbl">Jacke</div></div><div class="tile C"><svg class="ico c-weiss" viewBox="0 0 48 48"><path class="p" d="M16 7c-6 0-9 5-8 11l4 19c1 4 5 4 6 0l2-8c1-3 4-3 5 0l2 8c1 4 5 4 6 0l4-19c1-6-2-11-8-11-3 0-5 2-7 2s-4-2-6-2z"/>
+<path class="d outside" d="M39 6v5M36.5 8.5h5"/></svg><div class="lbl">Zähne</div></div><div class="tile C"><svg class="ico c-petrol" viewBox="0 0 48 48"><path class="d outside" d="M6 10h10a8 8 0 0 1 8 8v2"/>
+<path class="p" d="M12 27l4-7h16l4 7z"/>
+<path class="d outside" d="M17 33v4M24 33v6M31 33v4M20 42v2M28 42v2"/></svg><div class="lbl">Duschen</div></div><div class="tile C"><svg class="ico c-mauve" viewBox="0 0 48 48"><path class="p" d="M16 8l8 3 8-3 10 8-5 6-3-2v22H14V20l-3 2-5-6z"/>
+<path class="d" d="M20 9l4 5 4-5"/>
+<circle class="s" cx="24" cy="23" r="1.7"/><circle class="s" cx="24" cy="30" r="1.7"/><circle class="s" cx="24" cy="37" r="1.7"/>
+<path class="s" d="M32 22a5 5 0 1 0 3 8 4 4 0 0 1-3-8z"/></svg><div class="lbl">Schlafanzug</div></div><div class="tile C"><svg class="ico c-ocker" viewBox="0 0 48 48"><rect class="p" x="11" y="13" width="26" height="29" rx="7"/>
+<path class="d outside" d="M18 13v-2a6 6 0 0 1 12 0v2"/>
+<rect class="s" x="17" y="27" width="14" height="10" rx="3"/>
+<path class="d" d="M11 23h26"/></svg><div class="lbl">Ranzen</div></div></div>
+  <div class="rows"><div class="row C"><svg class="ico-s c-salbei" viewBox="0 0 48 48"><rect class="p" x="6" y="18" width="36" height="22" rx="5"/>
+<path class="d outside" d="M17 18v-3a7 7 0 0 1 14 0v3"/>
+<rect class="s" x="19" y="18" width="10" height="7" rx="2"/>
+<path class="d" d="M6 30h36"/></svg><span>Brotbox in die Küche</span><span class="chk"></span></div><div class="row C"><svg class="ico-s c-staubblau" viewBox="0 0 48 48"><path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>
+<rect class="s" x="19" y="5" width="10" height="6" rx="2"/>
+<path class="d outside" d="M21 11v5M27 11v5"/>
+<rect class="s" x="17" y="25" width="14" height="8"/></svg><span>Trinkflasche in die Küche</span><span class="chk"></span></div><div class="row C"><svg class="ico-s c-sand" viewBox="0 0 48 48"><path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/>
+<path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+<path class="d" d="M19 23l4 4M23 20l4 4"/></svg><span>Schuhe wegräumen</span><span class="chk"></span></div><div class="row C"><svg class="ico-s c-terrakotta" viewBox="0 0 48 48"><path class="d outside" d="M24 12V9a3 3 0 1 1 3-3"/>
+<path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/>
+<path class="s" d="M19 19l5 6 5-6z"/>
+<path class="d" d="M24 25v18"/></svg><span>Jacke aufhängen</span><span class="chk"></span></div></div>
+</section>
+
+<section>
+  <h2>Nicht gezeigt: fertige Icon-Bibliothek</h2>
+  <p class="desc">Eine vierte Möglichkeit wäre eine offene Bibliothek wie Phosphor oder Lucide. Vorteil: hunderte Icons in einem Stil, gut für die eigenen Aufgaben der Kinder. Nachteil: Brotbox, Zahnbürste, Schwimmbrille oder Schulranzen gibt es dort nicht in der Form, die eure Kinder kennen, und der Stil ist auf Erwachsene ausgelegt. Deshalb mein Vorschlag: eigenes Set (A oder B), und für die Kinder-eigenen Aufgaben später ein paar Icons aus einer Bibliothek im selben Strich nachzeichnen.</p>
+</section>
+</body>
+</html>

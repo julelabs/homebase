@@ -42,6 +42,7 @@ Elternbereich: drei Sekunden auf die obere rechte Ecke drücken. Per JavaScript 
 
 - Oben CSS mit Custom Properties. Nachtmodus ist die Klasse `night` auf dem Wurzelelement.
 - SVG-Sprite mit `<symbol id="i-...">` für Aufgaben-Icons und Avatare. Neue Icons dort ergänzen und den Namen in `ICON_CHOICES` eintragen.
+- `ICON_PATHS` und `ICON_COLORS`: das Icon-Set (Stil A). Pro Icon ein Markup-String mit den Klassen `p` (Hauptform, Aufgabenfarbe), `s` (Nebenform, Kartenfarbe), `d` (Detaillinie), `k` (Tintenfläche). `iconUse()` liefert dafür Inline-SVG; Namen ohne Eintrag (Avatare, Sonne, Mond) laufen weiter über `<use>` und das Sprite. Neue Icons: Markup in `ICON_PATHS`, Farbe in `ICON_COLORS`, Name in `ICON_CHOICES`, deutscher Standardname in `ICON_LABELS`. Farbwerte Tag in `:root` (`--ic-*`), Nacht in `#app.night`.
 - `PALETTE` und `COLOR_CHOICES`: die Kind-Farben (Tag- und Nachtwert).
 - `ICON_LABELS`: Standardname pro Icon für eigene Aufgaben ohne Text.
 - Die Config (Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten, Sound) kommt nur vom Server. Die Ausgangsdaten liegen in `backend/priv/repo/seeds.exs`, die Seeds laufen nur, wenn noch keine Config existiert. Ohne Config zeigt die Seite einen Hinweis statt des Boards.
@@ -85,4 +86,4 @@ Ton auf iOS: Web Audio spielt nur, wenn die Freigabe innerhalb einer Berührung 
 1. Ergebnis des Abendtests aus [[03 Testprotokoll]] lesen und die UI danach anpassen.
 2. `src/check.html` auf dem iPad öffnen, Ergebnis in [[03 Testprotokoll]] notieren.
 3. Backend auf Fly anlegen (Kommandos in `backend/README.md`), `DATABASE_URL` setzen, dann die Seite auf dem iPad gegen die Fly-Adresse testen.
-4. Icons und Avatare gestalterisch überarbeiten (Sonnet mit Spec, gegen die Palette prüfen).
+4. Avatare gestalterisch überarbeiten, passend zum Icon-Stil A (die sechs Tiere sehen sich noch zu ähnlich).

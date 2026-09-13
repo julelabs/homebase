@@ -6,6 +6,9 @@ Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Je
 
 | Entscheidung | Warum | Status |
 |---|---|---|
+| Icon-Stil A "weich gefüllt": eine Zeichnung pro Aufgabe, Hauptform in einer Farbe aus der gedämpften Palette, Nebenformen in Kartenfarbe, Linie in Textfarbe (2,5 px bei 48er Raster). Nachts eigene Farbwerte. Auswahl über `design/Icon-Vergleich.html` (A, B, C nebeneinander) | Farbe und Form zusammen sind für den Sechsjährigen am schnellsten erkennbar; die alten Linien-Icons waren zu abstrakt | umgesetzt am 13.09. abends, Julias Wahl |
+| Icons liegen als Inline-SVG in `ICON_PATHS` (Markup pro Icon) statt als `<use>`-Verweise | CSS-Regeln erreichen die Formen in `<use>`-Verweisen nicht, Füllungen wären unmöglich | umgesetzt |
+| Neue Icons Eule (Duolingo) und Lautsprecher (Hörbuch), dazu die Aufgaben "Duolingo" und "Hörbuch hören" in Seeds und Live-Config | Julias Wunsch | umgesetzt |
 | Dritter Zeitraum "Mittags" zwischen Morgens und Abends (`afternoon`). Grenzen: Mittagsliste ab 12:00, Abendliste ab 17:00, beides unter Zeiten einstellbar. Kopfzeile: Sonnenaufgang, Sonne, Mond | Nach der Schule passieren andere Dinge als vor der Schule (Brotbox in die Küche, Hausaufgaben) | umgesetzt am 13.09. abends. Bestehender Wochenplan bleibt unverändert, Mittags-Aufgaben werden im Elternbereich zugewiesen. Neue Seeds legen Brotbox, Flasche, Schuhe, Jacke (und Hausaufgaben) mittags an |
 | Aktivitäten (Schwimmen, Sport) bleiben zweiteilig: Mitnehmen-Aufgabe morgens, Packen-Aufgabe am Vorabend. Kein Mittags-Anteil | Sportbeutel kommt mittags mit nach Hause, das ist keine Aufgabe | gesetzt |
 | Backend: Phoenix als JSON-API mit Postgres in `backend/`, SPA bleibt eine Datei bei Cloudflare Pages, Backend bei Fly mit Scale-to-zero, vorhandene Postgres | Nachricht vom Handy und Zustand für die Eltern brauchen einen Server; Elixir ist der Hausstack | umgesetzt, Fly-App noch nicht angelegt |

@@ -38,6 +38,12 @@
     --text: #E8DDCB;
     --text2: #A0958A;
     --line: #3A332C;
+    --ic-salbei: #7E937C; --ic-staubblau: #73899E; --ic-sand: #AE9871; --ic-mauve: #927D91; --ic-terrakotta: #A57E6B;
+    --ic-olive: #888A5A; --ic-schiefer: #737D88; --ic-rose: #A98487; --ic-petrol: #688985; --ic-ocker: #A48A50; --ic-weiss: #5C544B;
+  }
+  :root {
+    --ic-salbei: #9DB59A; --ic-staubblau: #8FA9C2; --ic-sand: #D4B98A; --ic-mauve: #B59BB3; --ic-terrakotta: #C99A83;
+    --ic-olive: #A8A96E; --ic-schiefer: #8E9AA6; --ic-rose: #D0A3A6; --ic-petrol: #7FA8A4; --ic-ocker: #C9A961; --ic-weiss: #FFFDF8;
   }
 
   #app {
@@ -61,6 +67,17 @@
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+  /* Stil A: Hauptform in Aufgabenfarbe, Nebenformen in Kartenfarbe, Linien in Textfarbe */
+  svg.ic-a { stroke: var(--text); stroke-width: 2.5; }
+  svg.ic-a .p { fill: currentColor; }
+  svg.ic-a .s { fill: var(--card); }
+  svg.ic-a .k { fill: var(--text); stroke: none; }
+  svg.ic-a.ic-salbei { color: var(--ic-salbei); } svg.ic-a.ic-staubblau { color: var(--ic-staubblau); }
+  svg.ic-a.ic-sand { color: var(--ic-sand); } svg.ic-a.ic-mauve { color: var(--ic-mauve); }
+  svg.ic-a.ic-terrakotta { color: var(--ic-terrakotta); } svg.ic-a.ic-olive { color: var(--ic-olive); }
+  svg.ic-a.ic-schiefer { color: var(--ic-schiefer); } svg.ic-a.ic-rose { color: var(--ic-rose); }
+  svg.ic-a.ic-petrol { color: var(--ic-petrol); } svg.ic-a.ic-ocker { color: var(--ic-ocker); }
+  svg.ic-a.ic-weiss { color: var(--ic-weiss); }
 
   /* ---------- Kopfzeile ---------- */
   #header {
@@ -913,14 +930,15 @@
 
   var ICON_CHOICES = ['lunchbox', 'bottle', 'shoes', 'jacket', 'toothbrush', 'backpack', 'homework',
     'table', 'room', 'pet', 'trash', 'laundry', 'pajamas', 'swim', 'sport',
-    'lightoff', 'handwash', 'library', 'music', 'star', 'shower'];
+    'lightoff', 'handwash', 'library', 'music', 'star', 'shower', 'owl', 'speaker'];
 
   // Standardname pro Icon, wenn ein Kind keinen Text eintippt (Sechsjaehriger)
   var ICON_LABELS = {
     lunchbox: 'Brotbox', bottle: 'Flasche', shoes: 'Schuhe', jacket: 'Jacke', toothbrush: 'Zähne',
     backpack: 'Ranzen', swim: 'Schwimmen', sport: 'Sport', homework: 'Hausaufgaben', table: 'Tisch',
     room: 'Zimmer', pet: 'Tier', trash: 'Müll', laundry: 'Wäsche', pajamas: 'Schlafanzug',
-    lightoff: 'Licht aus', handwash: 'Hände', library: 'Buch', music: 'Musik', star: 'Aufgabe', shower: 'Duschen'
+    lightoff: 'Licht aus', handwash: 'Hände', library: 'Buch', music: 'Musik', star: 'Aufgabe', shower: 'Duschen',
+    owl: 'Duolingo', speaker: 'Hörbuch'
   };
 
   var AVATAR_CHOICES = ['fox', 'owl', 'dragon', 'cat', 'robot', 'dino'];
@@ -1240,7 +1258,63 @@
   var appEl = document.getElementById('app');
   var simLabelEl = document.getElementById('sim-label');
 
+  // Icon-Set im Stil A (weich gefuellt): p = Hauptform (Aufgabenfarbe), s = Nebenform (Kartenfarbe),
+  // d = Detaillinie, k = Tintenflaeche. Inline statt <use>, damit CSS die Formen erreicht.
+  var ICON_PATHS = {
+    lunchbox: '<rect class="p" x="6" y="18" width="36" height="22" rx="5"/><path class="d" d="M17 18v-3a7 7 0 0 1 14 0v3"/><rect class="s" x="19" y="18" width="10" height="7" rx="2"/><path class="d" d="M6 30h36"/>',
+    bottle: '<path class="p" d="M17 16h14v25a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/><rect class="s" x="19" y="5" width="10" height="6" rx="2"/><path class="d" d="M21 11v5M27 11v5"/><rect class="s" x="17" y="25" width="14" height="8"/>',
+    shoes: '<path class="p" d="M6 34c0-6 5-9 10-11l6-7c2-2 5-2 7 0l1 2c7 3 12 5 12 8v8H6z"/><path class="s" d="M6 34h36v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path class="d" d="M19 23l4 4M23 20l4 4"/>',
+    jacket: '<path class="d" d="M24 12V9a3 3 0 1 1 3-3"/><path class="p" d="M24 12l-13 7-5 9 6 3v12h24V31l6-3-5-9z"/><path class="s" d="M19 19l5 6 5-6z"/><path class="d" d="M24 25v18"/>',
+    toothbrush: '<path class="p" d="M16 7c-6 0-9 5-8 11l4 19c1 4 5 4 6 0l2-8c1-3 4-3 5 0l2 8c1 4 5 4 6 0l4-19c1-6-2-11-8-11-3 0-5 2-7 2s-4-2-6-2z"/><path class="d" d="M39 6v5M36.5 8.5h5"/>',
+    backpack: '<rect class="p" x="11" y="13" width="26" height="29" rx="7"/><path class="d" d="M18 13v-2a6 6 0 0 1 12 0v2"/><rect class="s" x="17" y="27" width="14" height="10" rx="3"/><path class="d" d="M11 23h26"/>',
+    homework: '<rect class="p" x="11" y="7" width="26" height="34" rx="4"/><path class="d" d="M18 17h12M18 24h12M18 31h7"/><path class="d" d="M11 13H7M11 20H7M11 27H7M11 34H7"/>',
+    table: '<path class="d" d="M8 9v8a3 3 0 0 0 6 0V9M11 20v21"/><path class="d" d="M40 9c-3 0-5 3-5 7v6h5v19"/><circle class="p" cx="24" cy="26" r="11"/><circle class="s" cx="24" cy="26" r="5"/>',
+    room: '<circle class="s" cx="17" cy="13" r="5"/><rect class="s" x="26" y="9" width="9" height="9" rx="1.5"/><path class="p" d="M8 22h32l-3 18a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3z"/><rect class="s" x="6" y="18" width="36" height="5" rx="2.5"/>',
+    pet: '<circle class="s" cx="19" cy="12" r="2"/><circle class="s" cx="26" cy="8" r="2"/><circle class="s" cx="33" cy="12" r="2"/><path class="p" d="M6 26h36c0 8-6 14-18 14S6 34 6 26z"/><rect class="s" x="4" y="23" width="40" height="5" rx="2.5"/>',
+    trash: '<path class="d" d="M20 11V8h8v3"/><path class="p" d="M11 16h26l-2 25a3 3 0 0 1-3 3H16a3 3 0 0 1-3-3z"/><rect class="s" x="8" y="11" width="32" height="5" rx="2.5"/><path class="d" d="M20 22v14M28 22v14"/>',
+    laundry: '<path class="s" d="M12 20c2-6 6-8 12-8s10 2 12 8z"/><path class="p" d="M8 20h32l-3 20a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3z"/><path class="d" d="M14 27h20M13 34h22"/>',
+    pajamas: '<path class="p" d="M16 8l8 3 8-3 10 8-5 6-3-2v22H14V20l-3 2-5-6z"/><path class="d" d="M20 9l4 5 4-5"/><circle class="s" cx="24" cy="23" r="1.7"/><circle class="s" cx="24" cy="30" r="1.7"/><circle class="s" cx="24" cy="37" r="1.7"/><path class="s" d="M32 22a5 5 0 1 0 3 8 4 4 0 0 1-3-8z"/>',
+    swim: '<path class="d" d="M7 24c-3-4-3-8 0-10M41 24c3-4 3-8 0-10"/><circle class="p" cx="15" cy="24" r="8"/><circle class="p" cx="33" cy="24" r="8"/><circle class="s" cx="15" cy="24" r="3.5"/><circle class="s" cx="33" cy="24" r="3.5"/><path class="d" d="M23 24h2"/><path class="d" d="M6 41c3-3 6-3 9 0s6 3 9 0 6-3 9 0 6 3 9 0"/>',
+    sport: '<circle class="p" cx="24" cy="24" r="16"/><path class="s" d="M24 16l7 5-3 8h-8l-3-8z"/><path class="d" d="M24 16V8M31 21l7-3M28 29l5 6M20 29l-5 6M17 21l-7-3"/>',
+    lightoff: '<path class="p" d="M24 5a11 11 0 0 0-7 19c1 1 2 3 2 5h10c0-2 1-4 2-5a11 11 0 0 0-7-19z"/><rect class="s" x="19" y="31" width="10" height="4" rx="1.5"/><rect class="s" x="20" y="37" width="8" height="3" rx="1.5"/><path class="d" d="M38 7l-4 4M40 15h-5"/>',
+    handwash: '<path class="s" d="M24 6c-3 5-6 8-6 12a6 6 0 0 0 12 0c0-4-3-7-6-12z"/><circle class="s" cx="38" cy="14" r="2.5"/><circle class="s" cx="42" cy="21" r="1.8"/><path class="p" d="M8 30c0-4 3-6 7-6h18c4 0 7 2 7 6v6a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6z"/><path class="d" d="M14 32v6M20 30v8M28 30v8M34 32v6"/>',
+    library: '<path class="p" d="M6 12c6-2 12-2 18 2 6-4 12-4 18-2v26c-6-2-12-2-18 2-6-4-12-4-18-2z"/><path class="d" d="M24 14v26"/><path class="d" d="M11 20c3-1 6-1 9 0M28 20c3-1 6-1 9 0M11 27c3-1 6-1 9 0M28 27c3-1 6-1 9 0"/>',
+    music: '<path class="d" d="M19 35V10l20-5v25"/><ellipse class="p" cx="13" cy="35" rx="6" ry="4.5"/><ellipse class="p" cx="33" cy="30" rx="6" ry="4.5"/>',
+    star: '<path class="p" d="M24 6l5.5 11.5L42 19l-9 8.7 2.2 12.5L24 34l-11.2 6.2L15 27.7 6 19l12.5-1.5z"/>',
+    shower: '<path class="d" d="M6 10h10a8 8 0 0 1 8 8v2"/><path class="p" d="M12 27l4-7h16l4 7z"/><path class="d" d="M17 33v4M24 33v6M31 33v4M20 42v2M28 42v2"/>',
+    owl: '<path class="d" d="M13 12l-3-6M35 12l3-6"/><path class="p" d="M24 6c-9 0-14 7-14 16v10c0 7 6 12 14 12s14-5 14-12V22c0-9-5-16-14-16z"/><circle class="s" cx="18" cy="22" r="5"/><circle class="s" cx="30" cy="22" r="5"/><circle class="k" cx="18" cy="22" r="1.8"/><circle class="k" cx="30" cy="22" r="1.8"/><path class="k" d="M24 27l-3 4h6z"/><path class="d" d="M17 36c2 3 12 3 14 0"/><path class="d" d="M19 44v3M29 44v3"/>',
+    speaker: '<path class="p" d="M8 19h7l9-8v26l-9-8H8z"/><path class="d" d="M30 18a8 8 0 0 1 0 12M35 13a15 15 0 0 1 0 22"/>'
+  };
+  var ICON_COLORS = {
+    lunchbox: 'salbei',
+    bottle: 'staubblau',
+    shoes: 'sand',
+    jacket: 'terrakotta',
+    toothbrush: 'weiss',
+    backpack: 'ocker',
+    homework: 'staubblau',
+    table: 'weiss',
+    room: 'mauve',
+    pet: 'terrakotta',
+    trash: 'schiefer',
+    laundry: 'petrol',
+    pajamas: 'mauve',
+    swim: 'petrol',
+    sport: 'olive',
+    lightoff: 'ocker',
+    handwash: 'staubblau',
+    library: 'sand',
+    music: 'mauve',
+    star: 'ocker',
+    shower: 'petrol',
+    owl: 'salbei',
+    speaker: 'schiefer'
+  };
+
   function iconUse(iconId, cls) {
+    if (ICON_PATHS[iconId]) {
+      return '<svg class="' + cls + ' icon-svg ic-a ic-' + (ICON_COLORS[iconId] || 'weiss') + '" viewBox="0 0 48 48">' + ICON_PATHS[iconId] + '</svg>';
+    }
     return '<svg class="' + cls + ' icon-svg"><use xlink:href="#i-' + esc(iconId) + '" href="#i-' + esc(iconId) + '"></use></svg>';
   }
 

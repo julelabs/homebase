@@ -64,7 +64,9 @@ default_config = %{
       {"schwimm_packen", task.("Schwimmsachen packen", "Schwimmen packen", "swim")},
       {"schwimm_mit", task.("Schwimmsachen mitnehmen", "Schwimmen", "swim")},
       {"sport_packen", task.("Sportsachen packen", "Sport packen", "sport")},
-      {"sport_mit", task.("Sportsachen mitnehmen", "Sport", "sport")}
+      {"sport_mit", task.("Sportsachen mitnehmen", "Sport", "sport")},
+      {"duolingo", task.("Duolingo", "Duolingo", "owl")},
+      {"hoerbuch", task.("Hörbuch hören", "Hörbuch", "speaker")}
     ]),
   "activities" =>
     Jason.OrderedObject.new([
