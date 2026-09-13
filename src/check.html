@@ -86,7 +86,17 @@
   has('Touch-Events', 'ontouchstart' in window);
 
   var s = document.createElement('div').style;
-  has('CSS Custom Properties', window.CSS && CSS.supports && CSS.supports('--a', '0'));
+  has('CSS Custom Properties', (function () {
+    // CSS.supports('--a', '0') liefert auf alten Safaris faelschlich false, deshalb echt nachmessen
+    try {
+      var el = document.createElement('div');
+      el.style.cssText = '--t: 7px; width: var(--t); position: absolute; visibility: hidden';
+      document.body.appendChild(el);
+      var ok = window.getComputedStyle(el).width === '7px';
+      document.body.removeChild(el);
+      return ok;
+    } catch (e) { return false; }
+  })());
   has('CSS Grid', 'grid' in s || 'gridTemplateColumns' in s);
   has('position: sticky', CSS.supports && (CSS.supports('position', 'sticky') || CSS.supports('position', '-webkit-sticky')));
   has('CSS min()/clamp() (erwartet: nein)', CSS.supports && CSS.supports('width', 'clamp(1px, 2px, 3px)'));
