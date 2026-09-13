@@ -1811,6 +1811,10 @@
       out += '<button class="p-btn' + (parentState.wpDay === wd ? ' active' : '') + '" data-action="wp-day" data-day="' + wd + '">' + WEEKDAY_ABBR[wd] + '</button>';
     }
     out += '</div>';
+    out += '<div class="p-row" style="margin-bottom:20px;align-items:center">' +
+      '<button class="p-btn" data-action="wp-copy-weekdays">' + WEEKDAY_ABBR[parentState.wpDay] + ' auf Mo bis Fr übernehmen</button>' +
+      '<span class="p-hint" style="margin-left:10px">Kopiert Morgens, Mittags und Abends dieses Tages auf alle Werktage. Aktivitäten bleiben pro Tag.</span>' +
+      '</div>';
 
     var schedDay = config.schedule[parentState.wpKid][parentState.wpDay];
     var taskIds = Object.keys(config.tasks);
@@ -2041,6 +2045,16 @@
       renderParent();
     } else if (action === 'wp-day') {
       parentState.wpDay = el.getAttribute('data-day');
+      renderParent();
+    } else if (action === 'wp-copy-weekdays') {
+      var srcDay = config.schedule[parentState.wpKid][parentState.wpDay];
+      var targets = ['mon', 'tue', 'wed', 'thu', 'fri'];
+      for (var t = 0; t < targets.length; t++) {
+        if (targets[t] === parentState.wpDay) continue;
+        var dst = config.schedule[parentState.wpKid][targets[t]];
+        for (var q = 0; q < PHASES.length; q++) dst[PHASES[q]] = (srcDay[PHASES[q]] || []).slice();
+      }
+      saveConfigAndBoard();
       renderParent();
     } else if (action === 'task-delete') {
       var taskId = el.getAttribute('data-task');
