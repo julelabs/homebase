@@ -25,7 +25,7 @@ app = "homebase-api"
     path = "/health"
 
 [deploy]
-  release_command = "/app/bin/homebase eval 'Homebase.Release.migrate'"
+  release_command = "/app/bin/homebase eval 'Homebase.Release.setup'"
 
 [[vm]]
   cpu_kind = "shared"

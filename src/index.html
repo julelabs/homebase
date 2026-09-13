@@ -519,7 +519,6 @@
     background: #F8F7F4;
     color: #33312D;
   }
-  .p-field textarea { min-height: 90px; font-family: monospace; font-size: 13px; }
   .p-row { display: flex; flex-wrap: wrap; margin: -4px; }
   .p-row > * { margin: 4px; }
   .p-btn {
@@ -806,6 +805,7 @@
         if (res.ok) return res.json();
         var err = new Error('HTTP ' + res.status);
         err.transient = res.status === 429 || res.status === 502 || res.status === 503 || res.status === 504;
+        err.rejected = res.status >= 400 && res.status < 500 && !err.transient;
         throw err;
       }, function () {
         var err = new Error('Netzwerk');
@@ -847,15 +847,17 @@
 
   var toastEl = document.getElementById('toast');
   var toastTimer = null;
-  function reportError() {
-    toastEl.textContent = 'Keine Verbindung zum Server, Änderung nicht gespeichert.';
+  function reportError(err) {
+    toastEl.textContent = err && err.rejected
+      ? 'Der Server hat die Änderung abgelehnt.'
+      : 'Keine Verbindung zum Server, Änderung nicht gespeichert.';
     toastEl.style.display = 'block';
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { toastEl.style.display = 'none'; }, 4000);
   }
 
   /* ============================================================
-     Default-Daten
+     Konstanten: Wochentage, Icons, Farben
      ============================================================ */
   var WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
   var WEEKDAY_ABBR = { mon: 'Mo', tue: 'Di', wed: 'Mi', thu: 'Do', fri: 'Fr', sat: 'Sa', sun: 'So' };
@@ -874,8 +876,6 @@
   };
 
   var AVATAR_CHOICES = ['fox', 'owl', 'dragon', 'cat', 'robot', 'dino'];
-  var CONFIG_VERSION = 3;
-
   // Gedaempfte Palette: das Tablet soll im Flur nicht schreien.
   var COLOR_CHOICES = ['salbei', 'staubblau', 'sand', 'mauve', 'terrakotta', 'olive', 'schiefer', 'rose', 'petrol', 'ocker'];
 
@@ -892,75 +892,9 @@
     ocker:      { day: '#C9A961', night: '#A48A50' }
   };
 
-  function buildDefaultSchedule() {
-    var schoolMorning = ['brotbox', 'flasche', 'schuhe', 'jacke', 'zaehne'];
-    var schoolMorningK2 = schoolMorning.concat(['ranzen']);
-    var evening = ['tisch_ab', 'zaehne', 'duschen', 'schlafanzug'];
-    var weekdayEvening = evening;
-    var weekdayEveningK2 = evening;
-    var fridayEveningK2 = evening;
-    var weekendMorning = ['zaehne', 'zimmer'];
-    var weekendEvening = evening;
 
-    function mk(morning, evening, activities) {
-      return { morning: morning.slice(), evening: evening.slice(), activities: activities ? activities.slice() : [] };
-    }
-
-    var k1 = {
-      mon: mk(schoolMorning, weekdayEvening),
-      tue: mk(schoolMorning, weekdayEvening, ['swim']),
-      wed: mk(schoolMorning, weekdayEvening),
-      thu: mk(schoolMorning, weekdayEvening),
-      fri: mk(schoolMorning, weekdayEvening),
-      sat: mk(weekendMorning, weekendEvening),
-      sun: mk(weekendMorning, weekendEvening)
-    };
-    var k2 = {
-      mon: mk(schoolMorningK2, weekdayEveningK2),
-      tue: mk(schoolMorningK2, weekdayEveningK2),
-      wed: mk(schoolMorningK2, weekdayEveningK2),
-      thu: mk(schoolMorningK2, weekdayEveningK2, ['sport']),
-      fri: mk(schoolMorningK2, fridayEveningK2),
-      sat: mk(weekendMorning, weekendEvening),
-      sun: mk(weekendMorning, weekendEvening)
-    };
-    return { k1: k1, k2: k2 };
-  }
-
-  function defaultConfig() {
-    return {
-      version: CONFIG_VERSION,
-      sound: true,
-      kids: [
-        { id: 'k1', name: 'Kind 1', avatar: 'fox', color: 'salbei', literacy: 'icons', canAddOwn: true },
-        { id: 'k2', name: 'Kind 2', avatar: 'dragon', color: 'staubblau', literacy: 'text', canAddOwn: true }
-      ],
-      tasks: {
-        brotbox: { label: 'Brotbox in die Küche', short: 'Brotbox', icon: 'lunchbox' },
-        flasche: { label: 'Trinkflasche in die Küche', short: 'Flasche', icon: 'bottle' },
-        schuhe: { label: 'Schuhe wegräumen', short: 'Schuhe', icon: 'shoes' },
-        jacke: { label: 'Jacke aufhängen', short: 'Jacke', icon: 'jacket' },
-        zaehne: { label: 'Zähne putzen', short: 'Zähne', icon: 'toothbrush' },
-        ranzen: { label: 'Schulranzen packen', short: 'Ranzen', icon: 'backpack' },
-        hausaufgaben: { label: 'Hausaufgaben', short: 'Hausaufgaben', icon: 'homework' },
-        tisch: { label: 'Tisch decken', short: 'Tisch decken', icon: 'table' },
-        tisch_ab: { label: 'Tisch abräumen', short: 'Tisch', icon: 'table' },
-        duschen: { label: 'Duschen oder baden', short: 'Duschen', icon: 'shower' },
-        zimmer: { label: 'Zimmer aufräumen', short: 'Zimmer', icon: 'room' },
-        schlafanzug: { label: 'Schlafanzug anziehen', short: 'Schlafanzug', icon: 'pajamas' },
-        schwimm_packen: { label: 'Schwimmsachen packen', short: 'Schwimmen packen', icon: 'swim' },
-        schwimm_mit: { label: 'Schwimmsachen mitnehmen', short: 'Schwimmen', icon: 'swim' },
-        sport_packen: { label: 'Sportsachen packen', short: 'Sport packen', icon: 'sport' },
-        sport_mit: { label: 'Sportsachen mitnehmen', short: 'Sport', icon: 'sport' }
-      },
-      activities: {
-        swim: { label: 'Schwimmen', morning: 'schwimm_mit', eveningBefore: 'schwimm_packen' },
-        sport: { label: 'Sport', morning: 'sport_mit', eveningBefore: 'sport_packen' }
-      },
-      schedule: buildDefaultSchedule(),
-      times: { eveningStartsAt: '12:00', nightStartsAt: '19:00', morningStartsAt: '06:00' }
-    };
-  }
+  // Die Config (Kinder, Aufgaben, Aktivitäten, Wochenplan, Zeiten) kommt ausschließlich vom Server.
+  // Die Ausgangsdaten liegen in backend/priv/repo/seeds.exs.
 
   function freshDay(d, config) {
     var day = { date: todayKey(d), checked: {}, own: {} };
@@ -1044,18 +978,14 @@
   var pending = {}; // 'kid:key' -> true, solange ein Haken auf Serverbestätigung wartet
 
   // Serverantwort (GET /api/board) in den lokalen Zustand übernehmen.
-  // Fehlt die Config auf dem Server oder ist sie älter als CONFIG_VERSION, gelten die Defaults.
+  // Ohne Config auf dem Server (Seeds fehlen) gibt es nichts zu zeigen: liefert false.
   function applyServerState(state) {
-    var cfg = state.config;
-    if (!cfg || !cfg.version || cfg.version < CONFIG_VERSION) {
-      cfg = defaultConfig();
-      Store.saveConfig(cfg).then(null, reportError);
-    }
-    if (typeof cfg.sound === 'undefined') cfg.sound = true;
-    config = cfg;
+    if (!state.config) return false;
+    config = state.config;
     day = state.day;
     message = state.message;
     ensureDayCurrent();
+    return true;
   }
 
   function ensureDayCurrent() {
@@ -1145,10 +1075,8 @@
     messageDraft: '',
     wpKid: '',
     wpDay: weekdayKeyOf(now()),
-    resetArmed: false,
     simTimeInput: '',
-    simDayInput: '',
-    jsonStatus: ''
+    simDayInput: ''
   };
 
   /* ============================================================
@@ -1706,8 +1634,7 @@
     { id: 'tasks', label: 'Aufgaben' },
     { id: 'kids', label: 'Kinder' },
     { id: 'times', label: 'Zeiten' },
-    { id: 'preview', label: 'Vorschau' },
-    { id: 'data', label: 'Daten' }
+    { id: 'preview', label: 'Vorschau' }
   ];
 
   function openParent() {
@@ -1719,8 +1646,6 @@
       parentState.messageDraft = '';
     }
     parentState.wpDay = weekdayKeyOf(d);
-    parentState.resetArmed = false;
-    parentState.jsonStatus = '';
     parentState.simTimeInput = sim && sim.time ? sim.time : '';
     parentState.simDayInput = sim && sim.day ? sim.day : '';
     parentOverlayEl.classList.add('open');
@@ -1748,7 +1673,6 @@
     else if (parentState.section === 'kids') content = renderSectionKids();
     else if (parentState.section === 'times') content = renderSectionTimes();
     else if (parentState.section === 'preview') content = renderSectionPreview();
-    else if (parentState.section === 'data') content = renderSectionData();
     parentContentEl.innerHTML = content;
 
     bindSectionEvents();
@@ -1920,17 +1844,6 @@
     return out;
   }
 
-  /* ---------- 7. Daten ---------- */
-  function renderSectionData() {
-    var out = '<h2>Daten</h2>';
-    out += '<button class="p-btn warn" data-action="reset-defaults">' + (parentState.resetArmed ? 'Wirklich? Nochmal tippen' : 'Beispieldaten wiederherstellen') + '</button>';
-    out += '<h2 style="margin-top:26px;font-size:17px">Config als JSON</h2>';
-    out += '<div class="p-field"><textarea id="p-json-text" rows="10">' + esc(JSON.stringify(config, null, 2)) + '</textarea></div>';
-    out += '<button class="p-btn primary" data-action="json-apply">Übernehmen</button>';
-    if (parentState.jsonStatus) out += '<div class="p-hint" style="color:#A0522D">' + esc(parentState.jsonStatus) + '</div>';
-    return out;
-  }
-
   /* ---------- Event-Bindung Inhalt ---------- */
   function bindSectionEvents() {
     parentContentEl.onclick = function (e) {
@@ -1945,9 +1858,9 @@
       var el = e.target;
       var action = el.getAttribute && el.getAttribute('data-action');
       if (action) handleParentChange(action, el);
-      else if (el.id === 'p-time-evening') { config.times.eveningStartsAt = el.value; saveConfigAndBoard(); }
-      else if (el.id === 'p-time-night-start') { config.times.nightStartsAt = el.value; saveConfigAndBoard(); }
-      else if (el.id === 'p-time-night-end') { config.times.morningStartsAt = el.value; saveConfigAndBoard(); }
+      else if (el.id === 'p-time-evening') { if (el.value) { config.times.eveningStartsAt = el.value; saveConfigAndBoard(); } }
+      else if (el.id === 'p-time-night-start') { if (el.value) { config.times.nightStartsAt = el.value; saveConfigAndBoard(); } }
+      else if (el.id === 'p-time-night-end') { if (el.value) { config.times.morningStartsAt = el.value; saveConfigAndBoard(); } }
       else if (el.id === 'p-sound') { config.sound = !!el.checked; saveConfigAndBoard(); if (config.sound) playDoneChime(); }
       else if (el.id === 'p-sim-time') { parentState.simTimeInput = el.value; applySimFromInputs(); }
       else if (el.id === 'p-sim-day') { parentState.simDayInput = el.value; applySimFromInputs(); }
@@ -2045,6 +1958,11 @@
     } else if (action === 'task-delete') {
       var taskId = el.getAttribute('data-task');
       delete config.tasks[taskId];
+      var actIds = Object.keys(config.activities);
+      for (var a = 0; a < actIds.length; a++) {
+        if (config.activities[actIds[a]].morning === taskId) config.activities[actIds[a]].morning = null;
+        if (config.activities[actIds[a]].eveningBefore === taskId) config.activities[actIds[a]].eveningBefore = null;
+      }
       var kidsIds = Object.keys(config.schedule);
       for (var i = 0; i < kidsIds.length; i++) {
         for (var w = 0; w < WEEKDAYS.length; w++) {
@@ -2088,42 +2006,6 @@
       parentState.simDayInput = '';
       render();
       renderParent();
-    } else if (action === 'reset-defaults') {
-      if (!parentState.resetArmed) {
-        parentState.resetArmed = true;
-        renderParent();
-      } else {
-        config = defaultConfig();
-        day = freshDay(now(), config);
-        message = null;
-        Store.saveConfig(config).then(null, reportError);
-        commitDay(day).then(null, reportError);
-        Store.saveMessage({ date: todayKey(now()), text: '' }).then(null, reportError);
-        for (var ci2 = 0; ci2 < config.kids.length; ci2++) {
-          colState[config.kids[ci2].id] = { forceList: false };
-          colTimers[config.kids[ci2].id] = null;
-        }
-        parentState.wpKid = config.kids[0].id;
-        parentState.resetArmed = false;
-        render();
-        renderParent();
-      }
-    } else if (action === 'json-apply') {
-      var ta = document.getElementById('p-json-text');
-      try {
-        var parsed = JSON.parse(ta.value);
-        if (!parsed.kids || !parsed.tasks || !parsed.schedule || !parsed.times) {
-          throw new Error('unvollständig');
-        }
-        config = parsed;
-        parentState.jsonStatus = '';
-        parentState.wpKid = config.kids[0].id;
-        Store.saveConfig(config).then(null, reportError);
-        render();
-      } catch (err) {
-        parentState.jsonStatus = 'Ungültiges JSON, nichts übernommen.';
-      }
-      renderParent();
     }
   }
 
@@ -2136,8 +2018,7 @@
     var seq = writeSeq;
     return Store.loadBoard(todayKey(now())).then(function (state) {
       if (seq !== writeSeq || sim) return;
-      applyServerState(state);
-      render();
+      if (applyServerState(state)) render();
     }, function () {});
   }
 
@@ -2161,7 +2042,11 @@
   var loadingEl = document.getElementById('loading');
   function boot(attempt) {
     Store.loadBoard(todayKey(now())).then(function (state) {
-      applyServerState(state);
+      if (!applyServerState(state)) {
+        var unconfigured = new Error('Keine Config auf dem Server');
+        unconfigured.unconfigured = true;
+        throw unconfigured;
+      }
       if (startSim) setSim(startSim);
       initColumns();
       parentState.wpKid = config.kids[0].id;
@@ -2169,8 +2054,10 @@
       render();
       if (urlParam('eltern') === '1') setTimeout(openParent, 100);
       setInterval(tick, 30000);
-    }, function () {
-      loadingEl.textContent = 'Keine Verbindung zum Server, neuer Versuch…';
+    }, function (err) {
+      loadingEl.textContent = err && err.unconfigured
+        ? 'Der Server ist noch nicht eingerichtet, neuer Versuch…'
+        : 'Keine Verbindung zum Server, neuer Versuch…';
       setTimeout(function () { boot(attempt + 1); }, Math.min(10000, 1000 * Math.pow(2, attempt)));
     });
   }

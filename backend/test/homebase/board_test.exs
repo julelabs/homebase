@@ -5,25 +5,164 @@ defmodule Homebase.BoardTest do
 
   @date ~D[2026-09-13]
 
+  @config %{
+    "kids" => [
+      %{
+        "id" => "k1",
+        "name" => "Anna",
+        "avatar" => "fox",
+        "color" => "salbei",
+        "literacy" => "icons",
+        "canAddOwn" => true
+      },
+      %{
+        "id" => "k2",
+        "name" => "Ben",
+        "avatar" => "dragon",
+        "color" => "staubblau",
+        "literacy" => "text",
+        "canAddOwn" => false
+      }
+    ],
+    "tasks" => %{
+      "zaehne" => %{"label" => "Zähne putzen", "short" => "Zähne", "icon" => "toothbrush"},
+      "brotbox" => %{
+        "label" => "Brotbox in die Küche",
+        "short" => "Brotbox",
+        "icon" => "lunchbox"
+      },
+      "schwimm_mit" => %{
+        "label" => "Schwimmsachen mitnehmen",
+        "short" => "Schwimmen",
+        "icon" => "swim"
+      }
+    },
+    "activities" => %{
+      "swim" => %{"label" => "Schwimmen", "morning" => "schwimm_mit", "eveningBefore" => nil}
+    },
+    "schedule" => %{
+      "k1" => %{
+        "mon" => %{
+          "morning" => ["zaehne", "brotbox"],
+          "evening" => ["zaehne"],
+          "activities" => ["swim"]
+        }
+      },
+      "k2" => %{"sat" => %{"morning" => ["brotbox"], "evening" => [], "activities" => []}}
+    },
+    "times" => %{
+      "morningStartsAt" => "06:00",
+      "eveningStartsAt" => "12:00",
+      "nightStartsAt" => "19:00"
+    },
+    "sound" => false
+  }
+
   describe "config" do
-    test "is nil until stored, then returned as given" do
+    test "is nil until seeded" do
       assert Board.get_config() == nil
-
-      data = %{"kids" => [], "tasks" => %{}, "schedule" => %{}, "times" => %{}, "version" => 3}
-      assert {:ok, ^data} = Board.put_config(data)
-      assert Board.get_config() == data
     end
 
-    test "second put replaces instead of adding a row" do
-      base = %{"kids" => [], "tasks" => %{}, "schedule" => %{}, "times" => %{}}
-      {:ok, _} = Board.put_config(Map.put(base, "version", 1))
-      {:ok, _} = Board.put_config(Map.put(base, "version", 2))
-      assert Board.get_config()["version"] == 2
-      assert Repo.aggregate(Homebase.Board.Config, :count) == 1
+    test "round trips kids, tasks, activities, schedule, times and sound" do
+      assert {:ok, config} = Board.put_config(@config)
+      assert config == Board.get_config()
+
+      assert Enum.map(config["kids"], & &1["id"]) == ["k1", "k2"]
+      assert Enum.at(config["kids"], 1)["canAddOwn"] == false
+      assert config["activities"]["swim"]["morning"] == "schwimm_mit"
+
+      assert config["schedule"]["k1"]["mon"] == %{
+               "morning" => ["zaehne", "brotbox"],
+               "evening" => ["zaehne"],
+               "activities" => ["swim"]
+             }
+
+      assert config["schedule"]["k2"]["mon"] == %{
+               "morning" => [],
+               "evening" => [],
+               "activities" => []
+             }
+
+      assert config["times"] == @config["times"]
+      assert config["sound"] == false
     end
 
-    test "rejects a config without the required keys" do
+    test "tasks keep their position across writes, new tasks are appended" do
+      {:ok, _} = Board.put_config(@config)
+      first_order = Board.get_config()["tasks"] |> Enum.map(fn {k, _} -> k end)
+
+      tasks =
+        Map.put(@config["tasks"], "aaa_neu", %{
+          "label" => "Neu",
+          "short" => "Neu",
+          "icon" => "star"
+        })
+
+      {:ok, config} = Board.put_config(Map.put(@config, "tasks", tasks))
+
+      assert Enum.map(config["tasks"], fn {k, _} -> k end) == first_order ++ ["aaa_neu"]
+    end
+
+    test "tasks encode as an ordered JSON object" do
+      {:ok, config} = Board.put_config(@config)
+      json = Jason.encode!(config["tasks"])
+      keys = Regex.scan(~r/"(zaehne|brotbox|schwimm_mit)":\{/, json) |> Enum.map(&Enum.at(&1, 1))
+      assert keys == Enum.map(config["tasks"], fn {k, _} -> k end)
+    end
+
+    test "an ordered object sets task positions explicitly" do
+      tasks =
+        Jason.OrderedObject.new(
+          Enum.map(~w(schwimm_mit zaehne brotbox), &{&1, @config["tasks"][&1]})
+        )
+
+      {:ok, config} = Board.put_config(Map.put(@config, "tasks", tasks))
+      assert Enum.map(config["tasks"], fn {k, _} -> k end) == ~w(schwimm_mit zaehne brotbox)
+    end
+
+    test "removing a task removes it from the schedule" do
+      {:ok, _} = Board.put_config(@config)
+      tasks = Map.delete(@config["tasks"], "zaehne")
+      {:ok, config} = Board.put_config(Map.put(@config, "tasks", tasks))
+      assert config["schedule"]["k1"]["mon"]["morning"] == ["brotbox"]
+      assert config["schedule"]["k1"]["mon"]["evening"] == []
+    end
+
+    test "deleting a task an activity refers to clears the reference" do
+      {:ok, _} = Board.put_config(@config)
+      tasks = Map.delete(@config["tasks"], "schwimm_mit")
+      {:ok, config} = Board.put_config(Map.put(@config, "tasks", tasks))
+      assert config["activities"]["swim"]["morning"] == nil
+    end
+
+    test "an empty kid name is allowed while the parent retypes it" do
+      kids = List.update_at(@config["kids"], 0, &Map.put(&1, "name", ""))
+      {:ok, config} = Board.put_config(Map.put(@config, "kids", kids))
+      assert hd(config["kids"])["name"] == ""
+    end
+
+    test "rejects incomplete or malformed configs" do
       assert {:error, :invalid} = Board.put_config(%{"kids" => []})
+
+      assert {:error, :invalid} =
+               Board.put_config(Map.put(@config, "times", %{"morningStartsAt" => "früh"}))
+
+      bad_kid = %{
+        "id" => "k3",
+        "name" => "X",
+        "avatar" => "fox",
+        "color" => "sand",
+        "literacy" => "pictures"
+      }
+
+      assert {:error, :invalid} = Board.put_config(Map.put(@config, "kids", [bad_kid]))
+      long_key = String.duplicate("x", 300)
+
+      long_tasks =
+        Map.put(@config["tasks"], long_key, %{"label" => "L", "short" => "L", "icon" => "star"})
+
+      assert {:error, :invalid} = Board.put_config(Map.put(@config, "tasks", long_tasks))
+      assert Board.get_config() == nil
     end
   end
 

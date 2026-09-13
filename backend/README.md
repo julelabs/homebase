@@ -26,7 +26,11 @@ Neue Verbindung, Postgres:
 - Host `localhost`, Port `5432`, User: eigener Systembenutzer (`whoami`), kein Passwort, Datenbank `homebase_dev`.
 - Als URL: `postgresql://localhost:5432/homebase_dev`
 
-Tabellen: `configs` (Board-Config als JSON, eine Zeile), `checks` (Haken pro Kind, Aufgabe, Tag), `own_tasks` (eigene Aufgaben der Kinder), `messages` (Nachricht pro Tag).
+Tabellen: `kids`, `tasks`, `activities`, `schedule_tasks` und `schedule_activities` (Wochenplan), `settings` (Zeiten, Sound, eine Zeile), `checks` (Haken pro Kind, Aufgabe, Tag), `own_tasks` (eigene Aufgaben der Kinder), `messages` (Nachricht pro Tag).
+
+Die Ausgangs-Config kommt aus `priv/repo/seeds.exs` und wird nur eingespielt, wenn noch keine existiert. Auf Fly laufen Migrationen und Seeds bei jedem Deploy automatisch (`release_command` in `fly.toml`). Beispieldaten für heute (Nachricht, Haken) liegen in `priv/repo/dev_seeds.exs` und laufen nur über `mix ecto.setup` und `mix ecto.reset`.
+
+`mix ecto.reset` braucht exklusiven Zugriff: vorher TablePlus trennen und den Server stoppen.
 
 ## API
 
@@ -36,7 +40,7 @@ Alle Antworten JSON. Datum immer `YYYY-MM-DD` in der Lokalzeit des Tablets.
 |---|---|---|---|
 | GET | `/health` | | `{status: "ok"}`, ohne Token, ohne DB |
 | GET | `/api/board?date=` | | `{config, day, message}` |
-| PUT | `/api/config` | `{config}` | `{config}` |
+| PUT | `/api/config` | `{config}` | `{config}` (Aufgaben und Aktivitäten kommen in Positionsreihenfolge zurück, neue werden hinten angehängt) |
 | PUT | `/api/days/:date` | `{checked, own}` | `{day}` |
 | PUT | `/api/messages/:date` | `{text}` (leer löscht) | `{message}` |
 
@@ -56,6 +60,6 @@ fly secrets set -a homebase-api API_TOKEN='...'   # optional
 fly deploy
 ```
 
-Danach deployt `.github/workflows/fly.yml` bei jedem Push auf `main`, der `backend/` ändert (braucht das Repo-Secret `FLY_API_TOKEN`). Migrationen laufen als `release_command` vor dem Start.
+Danach deployt `.github/workflows/ci.yml` bei jedem Push auf `main`, sobald Tests und SPA-Lint grün sind (braucht das Repo-Secret `FLY_API_TOKEN`). Pull Requests laufen nur durch die Tests. Migrationen und Seeds laufen als `release_command` vor dem Start.
 
 Die SPA erwartet die API unter `https://homebase-api.fly.dev`. Anderer App-Name: `API_BASE` in `../src/index.html` anpassen.
