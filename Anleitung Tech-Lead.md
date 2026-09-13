@@ -6,11 +6,12 @@
 - `00 Briefing.md`, `01 Entscheidungen.md`, `02 Handover.md`, `03 Testprotokoll.md`: Projektnotizen.
 - `src/check.html`: Gerätecheck. Einmal auf dem iPad öffnen, zeigt iOS-Version und welche Browser-Features gehen.
 - `src/index.html`: Der Prototyp. Eine Datei, keine Abhängigkeiten, läuft ohne Server im Browser.
+- `backend/`: Phoenix JSON-API mit Postgres. Setup, TablePlus, API und Fly in `backend/README.md`.
 - `Anleitung Tech-Lead.md`: diese Datei.
 
 ## Am Rechner ansehen
 
-Doppelklick auf `src/index.html` reicht. Für ein iPad-ähnliches Fenster: Browserfenster auf etwa 1024 x 768 ziehen.
+Erst das Backend starten (`cd backend && mix phx.server`), dann `src/index.html` öffnen. Für ein iPad-ähnliches Fenster: Browserfenster auf etwa 1024 x 768 ziehen.
 
 Testparameter in der Adresszeile: `index.html?zeit=19:30&tag=sat` simuliert Uhrzeit und Wochentag. Ohne Parameter gilt die echte Zeit.
 
@@ -25,9 +26,9 @@ cd "$HOME/Documents/Vault Julia/Julia/Flur-Tablet"
 python3 -m http.server 8765 --directory src
 ```
 
-Dann am iPad in Safari `http://<IP des Rechners>:8765/index.html` öffnen (die IP steht unter Systemeinstellungen > Netzwerk). Für den Dauerbetrieb gehört die Datei auf einen Server, der immer läuft (siehe Entscheidungsvorlage im Konzept).
+Dann am iPad in Safari `http://<IP des Rechners>:8765/index.html?api=http://<IP des Rechners>:4000` öffnen (die IP steht unter Systemeinstellungen > Netzwerk). Im Dauerbetrieb liegt die Seite bei Cloudflare Pages und das Backend bei Fly, dann reicht die Cloudflare-Adresse ohne `?api=`.
 
-Auf dem iPad: Teilen-Symbol > "Zum Home-Bildschirm". Danach vom Home-Bildschirm starten, dann läuft die Seite im Vollbild ohne Safari-Leiste. Wichtig: Der localStorage der Home-Bildschirm-Version ist getrennt von dem in Safari. Einstellungen, die man in Safari gemacht hat, sind im Vollbild nicht da.
+Auf dem iPad: Teilen-Symbol > "Zum Home-Bildschirm". Danach vom Home-Bildschirm starten, dann läuft die Seite im Vollbild ohne Safari-Leiste. Der Link merkt sich die Adresse samt Parametern.
 
 ## Geräteeinstellungen (iOS 12)
 
@@ -45,4 +46,4 @@ Wenn eine Spalte komplett ist, spielt die Seite einen kurzen synthetischen Klang
 
 - Um Mitternacht setzt sie alle Haken zurück und löscht die Nachricht.
 - Um 03:00 lädt sie sich einmal neu, damit sie über Wochen stabil bleibt.
-- Alle Daten liegen im localStorage des iPads (Variante C im Konzept). Für Nachrichten vom Handy braucht es einen Server, dann wird nur das `Store`-Objekt in `src/index.html` ausgetauscht.
+- Alle Daten liegen in Postgres hinter der JSON-API. Die Seite zeigt beim Start einen Ladezustand, wiederholt Anfragen bei Netzfehlern und übernimmt Haken erst nach Serverbestätigung. Alle 30 Sekunden holt sie den Stand vom Server, so kommt die Nachricht vom Handy an (Seite auf dem Handy mit `?eltern=1` öffnen).

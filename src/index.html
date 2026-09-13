@@ -339,6 +339,38 @@
     display: none;
   }
 
+  /* Ladezustand bis zur ersten Serverantwort */
+  #loading {
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text2);
+    font-size: 24px;
+    z-index: 40;
+  }
+
+  /* Kurzer Hinweis, wenn eine Änderung nicht gespeichert werden konnte */
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    font-size: 15px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 8px 14px;
+    border-radius: 10px;
+    z-index: 35;
+    display: none;
+  }
+
+  /* Haken wartet auf Serverbestätigung */
+  .tile.pending, .task-row.pending { opacity: 0.7; }
+
   /* ---------- Overlays allgemein ---------- */
   .overlay {
     position: fixed;
@@ -708,6 +740,8 @@
 
 <div class="corner-hit" id="corner-hit"></div>
 <div id="sim-label"></div>
+<div id="loading">Lädt…</div>
+<div id="toast"></div>
 
 <div class="overlay" id="own-overlay">
   <div class="overlay-scrim"></div>
@@ -736,29 +770,89 @@
   /* ============================================================
      Store
      ============================================================ */
+  /* Alle Daten liegen in Postgres hinter der JSON-API (backend/). Kein localStorage.
+     API-Adresse: ?api=... in der Adresse, sonst localhost:4000 am Rechner, sonst Fly.
+     Optionales Token: ?token=... (Server mit API_TOKEN). Beides bleibt im Homescreen-Lesezeichen. */
+  function urlParam(name) {
+    try { return new URLSearchParams(location.search).get(name); } catch (e) { return null; }
+  }
+
+  var API_BASE = (function () {
+    var override = urlParam('api');
+    if (override) return override.replace(/\/$/, '');
+    var local = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    return local ? 'http://localhost:4000' : 'https://homebase-api.fly.dev';
+  })();
+  var API_TOKEN = urlParam('token');
+
+  var writeSeq = 0; // zählt Schreibvorgänge, damit überholte Poll-Antworten verworfen werden
+
+  function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+
+  // HTTP-Aufruf mit Wiederholung bei Netzfehlern und vorübergehenden Serverfehlern
+  // (429, 502, 503, 504, zum Beispiel beim Aufwachen des Servers). Backoff 0,5s bis 8s.
+  function apiRequest(method, path, body, attempts) {
+    if (typeof attempts !== 'number') attempts = 5;
+    var headers = { 'Accept': 'application/json' };
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (API_TOKEN) headers['Authorization'] = 'Bearer ' + API_TOKEN;
+    var opts = { method: method, headers: headers, cache: 'no-store' };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    var attempt = 0;
+
+    function run() {
+      attempt++;
+      return fetch(API_BASE + path, opts).then(function (res) {
+        if (res.ok) return res.json();
+        var err = new Error('HTTP ' + res.status);
+        err.transient = res.status === 429 || res.status === 502 || res.status === 503 || res.status === 504;
+        throw err;
+      }, function () {
+        var err = new Error('Netzwerk');
+        err.transient = true;
+        throw err;
+      }).then(null, function (err) {
+        if (err.transient && attempt < attempts) {
+          return wait(Math.min(8000, 500 * Math.pow(2, attempt - 1))).then(run);
+        }
+        throw err;
+      });
+    }
+    return run();
+  }
+
+  // Schreibende Aufrufe ersetzen immer einen kompletten Datensatz, Wiederholen ist deshalb unschädlich.
+  function apiWrite(path, body) {
+    writeSeq++;
+    return apiRequest('PUT', path, body).then(function (data) {
+      writeSeq++;
+      return data;
+    });
+  }
+
   var Store = {
-    load: function (key, fallback) {
-      try {
-        var raw = localStorage.getItem('flur.' + key);
-        if (raw === null) return fallback;
-        return JSON.parse(raw);
-      } catch (e) {
-        return fallback;
-      }
+    loadBoard: function (dateKey) {
+      return apiRequest('GET', '/api/board?date=' + dateKey, undefined, 3);
     },
-    save: function (key, value) {
-      try {
-        localStorage.setItem('flur.' + key, JSON.stringify(value));
-      } catch (e) {}
-      for (var i = 0; i < Store._handlers.length; i++) {
-        Store._handlers[i](key, value);
-      }
+    saveConfig: function (cfg) {
+      return apiWrite('/api/config', { config: cfg }).then(function (r) { return r.config; });
     },
-    onChange: function (handler) {
-      Store._handlers.push(handler);
+    saveDay: function (d) {
+      return apiWrite('/api/days/' + d.date, { checked: d.checked, own: d.own }).then(function (r) { return r.day; });
     },
-    _handlers: []
+    saveMessage: function (m) {
+      return apiWrite('/api/messages/' + m.date, { text: m.text }).then(function (r) { return r.message; });
+    }
   };
+
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function reportError() {
+    toastEl.textContent = 'Keine Verbindung zum Server, Änderung nicht gespeichert.';
+    toastEl.style.display = 'block';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.style.display = 'none'; }, 4000);
+  }
 
   /* ============================================================
      Default-Daten
@@ -944,21 +1038,29 @@
   /* ============================================================
      Zustand
      ============================================================ */
-  var config = Store.load('config', null);
-  if (!config || !config.version || config.version < CONFIG_VERSION) {
-    config = defaultConfig();
-    Store.save('config', config);
+  var config = null;
+  var day = null;
+  var message = null;
+  var pending = {}; // 'kid:key' -> true, solange ein Haken auf Serverbestätigung wartet
+
+  // Serverantwort (GET /api/board) in den lokalen Zustand übernehmen.
+  // Fehlt die Config auf dem Server oder ist sie älter als CONFIG_VERSION, gelten die Defaults.
+  function applyServerState(state) {
+    var cfg = state.config;
+    if (!cfg || !cfg.version || cfg.version < CONFIG_VERSION) {
+      cfg = defaultConfig();
+      Store.saveConfig(cfg).then(null, reportError);
+    }
+    if (typeof cfg.sound === 'undefined') cfg.sound = true;
+    config = cfg;
+    day = state.day;
+    message = state.message;
+    ensureDayCurrent();
   }
-  if (typeof config.sound === 'undefined') config.sound = true;
-  var day = Store.load('day', null);
-  var message = Store.load('message', null);
 
   function ensureDayCurrent() {
     var d = now();
-    if (!day || day.date !== todayKey(d)) {
-      day = freshDay(d, config);
-      saveDay();
-    }
+    if (!day || day.date !== todayKey(d)) day = freshDay(d, config);
     // fehlende Kind-Eintraege nachziehen (falls Config sich geaendert hat)
     for (var i = 0; i < config.kids.length; i++) {
       var kid = config.kids[i].id;
@@ -967,10 +1069,32 @@
     }
   }
 
-  // Waehrend einer Simulation wird der Tageszustand nur im Speicher gehalten.
-  // Der echte Tag der Kinder bleibt im localStorage unangetastet.
-  function saveDay() {
-    if (!sim) Store.save('day', day);
+  function cloneDay(d) { return JSON.parse(JSON.stringify(d)); }
+
+  // Neuen Tageszustand an den Server schicken. Er gilt erst, wenn der Server bestätigt hat.
+  // Während einer Simulation bleibt der Zustand nur im Speicher, der echte Tag bleibt unangetastet.
+  function commitDay(next) {
+    if (sim) {
+      day = next;
+      return Promise.resolve(day);
+    }
+    return Store.saveDay(next).then(function (saved) {
+      day = saved;
+      ensureDayCurrent();
+      return day;
+    });
+  }
+
+  // Nachricht speichern, gilt erst nach Serverbestätigung.
+  function commitMessage(next) {
+    Store.saveMessage(next).then(function (saved) {
+      message = saved;
+      render();
+      renderParent();
+    }, function (err) {
+      reportError(err);
+      renderParent();
+    });
   }
 
   function setSim(next) {
@@ -979,12 +1103,14 @@
     if (sim && !wasSim) {
       day = freshDay(now(), config);
     } else if (!sim && wasSim) {
-      day = Store.load('day', null);
+      day = null;
+      refresh();
     }
     ensureDayCurrent();
   }
 
-  // URL-Parameter fuer Tests (vor der Datumspruefung, sonst wird der echte Tag verworfen)
+  // URL-Parameter fuer Tests. Die Simulation startet erst, wenn der Zustand geladen ist.
+  var startSim = null;
   (function parseUrlParams() {
     try {
       var params = new URLSearchParams(location.search);
@@ -994,17 +1120,17 @@
         var s = {};
         if (zeit) s.time = zeit;
         if (tag) s.day = tag;
-        setSim(s);
+        startSim = s;
       }
     } catch (e) {}
   })();
-  ensureDayCurrent();
-
   var colState = {}; // pro Kid: { forceList: bool }
   var colTimers = {}; // pro Kid: setTimeout-Handle
-  for (var ci = 0; ci < config.kids.length; ci++) {
-    colState[config.kids[ci].id] = { forceList: false };
-    colTimers[config.kids[ci].id] = null;
+  function initColumns() {
+    for (var ci = 0; ci < config.kids.length; ci++) {
+      colState[config.kids[ci].id] = { forceList: false };
+      colTimers[config.kids[ci].id] = null;
+    }
   }
 
   var lastToggled = null; // { kidId, key } für Pop-Animation
@@ -1017,7 +1143,7 @@
     open: false,
     section: 'message',
     messageDraft: '',
-    wpKid: config.kids[0].id,
+    wpKid: '',
     wpDay: weekdayKeyOf(now()),
     resetArmed: false,
     simTimeInput: '',
@@ -1095,13 +1221,27 @@
     return !!(day.checked[kidId] && day.checked[kidId][key]);
   }
 
+  // Haken setzen oder lösen. Gilt erst, wenn der Server bestätigt hat; solange ist die Zeile "pending".
+  // Löst mit true auf, wenn sich etwas geändert hat.
   function toggleCheck(kidId, key) {
-    if (!day.checked[kidId]) day.checked[kidId] = {};
-    var wasChecked = !!day.checked[kidId][key];
-    day.checked[kidId][key] = !wasChecked;
-    if (!day.checked[kidId][key]) delete day.checked[kidId][key];
-    if (!wasChecked) lastToggled = { kidId: kidId, key: key };
-    saveDay();
+    var pendingKey = kidId + ':' + key;
+    if (pending[pendingKey]) return Promise.resolve(false);
+    var next = cloneDay(day);
+    if (!next.checked[kidId]) next.checked[kidId] = {};
+    var wasChecked = !!next.checked[kidId][key];
+    if (wasChecked) delete next.checked[kidId][key]; else next.checked[kidId][key] = true;
+    pending[pendingKey] = true;
+    render();
+    return commitDay(next).then(function () {
+      delete pending[pendingKey];
+      if (!wasChecked) lastToggled = { kidId: kidId, key: key };
+      return true;
+    }, function (err) {
+      delete pending[pendingKey];
+      reportError(err);
+      render();
+      return false;
+    });
   }
 
   /* ============================================================
@@ -1147,6 +1287,13 @@
       var node = boardEl.querySelector(sel);
       if (node) node.className += ' pop';
       lastToggled = null;
+    }
+
+    for (var pk in pending) {
+      var pi = pk.indexOf(':');
+      var pnode = boardEl.querySelector('.check[data-kid="' + pk.slice(0, pi) + '"][data-key="' + cssEscapeAttr(pk.slice(pi + 1)) + '"]');
+      while (pnode && pnode !== boardEl && !/(^| )(tile|task-row)( |$)/.test(pnode.className || '')) pnode = pnode.parentNode;
+      if (pnode && pnode !== boardEl) pnode.className += ' pending';
     }
 
     if (sim) {
@@ -1395,10 +1542,10 @@
     var kidId = el.getAttribute('data-kid');
     var ownId = el.getAttribute('data-own-id');
     setTimeout(function () {
-      var list = day.own[kidId] || [];
-      day.own[kidId] = list.filter(function (o) { return o.id !== ownId; });
-      saveDay();
-      render();
+      var next = cloneDay(day);
+      var list = next.own[kidId] || [];
+      next.own[kidId] = list.filter(function (o) { return o.id !== ownId; });
+      commitDay(next).then(render, function (err) { reportError(err); render(); });
     }, 250);
   }
 
@@ -1415,9 +1562,11 @@
       var key = roleEl.getAttribute('data-key');
       unlockAudio();
       var wasComplete = columnComplete(kidId);
-      toggleCheck(kidId, key);
-      if (!wasComplete && columnComplete(kidId)) playDoneChime();
-      render();
+      toggleCheck(kidId, key).then(function (changed) {
+        if (!changed) return;
+        if (!wasComplete && columnComplete(kidId)) playDoneChime();
+        render();
+      });
     } else if (role === 'add-own') {
       openOwnOverlay(kidId);
     } else if (role === 'peek') {
@@ -1474,16 +1623,16 @@
     var kidId = ownOverlayState.kidId;
     var d = now();
     var phase = phaseFor(d, config.times);
-    if (!day.own[kidId]) day.own[kidId] = [];
-    day.own[kidId].push({
+    var next = cloneDay(day);
+    if (!next.own[kidId]) next.own[kidId] = [];
+    next.own[kidId].push({
       id: 'o' + Date.now() + Math.floor(Math.random() * 1000),
       phase: phase,
       label: text.slice(0, 40),
       icon: ownOverlayState.icon
     });
-    saveDay();
     closeOwnOverlay();
-    render();
+    commitDay(next).then(render, function (err) { reportError(err); render(); });
   });
 
   /* ============================================================
@@ -1525,9 +1674,6 @@
       openParent();
     }
   });
-  try {
-    if (new URLSearchParams(location.search).get('eltern') === '1') setTimeout(openParent, 100);
-  } catch (e) {}
 
   function startCornerTimer() {
     cancelCornerTimer();
@@ -1565,6 +1711,7 @@
   ];
 
   function openParent() {
+    if (!config) return; // noch nicht geladen
     var d = now();
     if (message && message.date === todayKey(d)) {
       parentState.messageDraft = message.text || '';
@@ -1825,8 +1972,10 @@
     }
   }
 
+  // Config-Änderungen gelten sofort lokal (Tippen im Elternbereich darf nicht warten)
+  // und werden im Hintergrund gespeichert. Scheitert das, kommt ein Hinweis.
   function saveConfigAndBoard() {
-    Store.save('config', config);
+    Store.saveConfig(config).then(null, reportError);
     render();
   }
 
@@ -1883,16 +2032,10 @@
   function handleParentAction(action, el) {
     if (action === 'msg-show') {
       var text = parentState.messageDraft.replace(/\s+/g, ' ').trim().slice(0, 80);
-      message = { date: todayKey(now()), text: text };
-      Store.save('message', message);
-      render();
-      renderParent();
+      commitMessage({ date: todayKey(now()), text: text });
     } else if (action === 'msg-clear') {
-      message = { date: todayKey(now()), text: '' };
       parentState.messageDraft = '';
-      Store.save('message', message);
-      render();
-      renderParent();
+      commitMessage({ date: todayKey(now()), text: '' });
     } else if (action === 'wp-kid') {
       parentState.wpKid = el.getAttribute('data-kid');
       renderParent();
@@ -1953,9 +2096,9 @@
         config = defaultConfig();
         day = freshDay(now(), config);
         message = null;
-        Store.save('config', config);
-        saveDay();
-        Store.save('message', { date: '', text: '' });
+        Store.saveConfig(config).then(null, reportError);
+        commitDay(day).then(null, reportError);
+        Store.saveMessage({ date: todayKey(now()), text: '' }).then(null, reportError);
         for (var ci2 = 0; ci2 < config.kids.length; ci2++) {
           colState[config.kids[ci2].id] = { forceList: false };
           colTimers[config.kids[ci2].id] = null;
@@ -1975,7 +2118,7 @@
         config = parsed;
         parentState.jsonStatus = '';
         parentState.wpKid = config.kids[0].id;
-        Store.save('config', config);
+        Store.saveConfig(config).then(null, reportError);
         render();
       } catch (err) {
         parentState.jsonStatus = 'Ungültiges JSON, nichts übernommen.';
@@ -1987,33 +2130,51 @@
   /* ============================================================
      Uhr-Intervall
      ============================================================ */
-  setInterval(function () {
-    var d = now();
-    var key = todayKey(d);
-    if (day.date !== key) {
-      day = freshDay(d, config);
-      saveDay();
-    }
-    render();
+  // Zustand vom Server holen (Nachricht vom Handy, Haken, Config-Änderungen).
+  // Antworten, die von einem Schreibvorgang überholt wurden, werden verworfen.
+  function refresh() {
+    var seq = writeSeq;
+    return Store.loadBoard(todayKey(now())).then(function (state) {
+      if (seq !== writeSeq || sim) return;
+      applyServerState(state);
+      render();
+    }, function () {});
+  }
 
-    if (!sim) {
-      var real = new Date();
-      if (real.getHours() === 3 && real.getMinutes() === 0) {
-        var reloadKey = todayKey(real);
-        var lastReload = null;
-        try { lastReload = localStorage.getItem('flur.lastReload'); } catch (e) {}
-        if (lastReload !== reloadKey) {
-          try { localStorage.setItem('flur.lastReload', reloadKey); } catch (e) {}
-          location.reload();
-        }
-      }
-    }
-  }, 30000);
+  // Alle 30 Sekunden: Datumswechsel prüfen, Server fragen, neu zeichnen.
+  // Um 03:00 lädt sich die Seite einmal neu (nur wenn sie schon länger als eine Stunde läuft).
+  var bootedAt = Date.now();
+  function tick() {
+    ensureDayCurrent();
+    render();
+    if (!sim) refresh();
+
+    var real = new Date();
+    var upForAnHour = Date.now() - bootedAt > 60 * 60 * 1000;
+    if (!sim && real.getHours() === 3 && real.getMinutes() === 0 && upForAnHour) location.reload();
+  }
 
   /* ============================================================
-     Start
+     Start: erst laden, dann zeichnen. Bis dahin steht der Ladezustand im Bild.
+     Ohne Verbindung wird mit wachsendem Abstand weiter versucht.
      ============================================================ */
-  render();
+  var loadingEl = document.getElementById('loading');
+  function boot(attempt) {
+    Store.loadBoard(todayKey(now())).then(function (state) {
+      applyServerState(state);
+      if (startSim) setSim(startSim);
+      initColumns();
+      parentState.wpKid = config.kids[0].id;
+      loadingEl.style.display = 'none';
+      render();
+      if (urlParam('eltern') === '1') setTimeout(openParent, 100);
+      setInterval(tick, 30000);
+    }, function () {
+      loadingEl.textContent = 'Keine Verbindung zum Server, neuer Versuch…';
+      setTimeout(function () { boot(attempt + 1); }, Math.min(10000, 1000 * Math.pow(2, attempt)));
+    });
+  }
+  boot(0);
 })();
 </script>
 </body>
