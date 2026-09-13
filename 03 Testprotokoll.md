@@ -26,7 +26,17 @@ Ergebnis:
 
 ## Gerätecheck iPad
 
-`src/check.html` auf dem iPad geöffnet am: (Datum)
+`src/check.html` auf dem iPad geöffnet am: 2026-09-13, 17:03, über `homebase.breyer.berlin` in Safari (nicht vom Homescreen).
 
-iOS-Version laut Seite: 
-Auffälligkeiten (Kästchen bei Emoji, fehlende Features, Tipp-Verzögerung): 
+iOS-Version laut Seite: 12.5.8 (iPad Air 1, letzter Stand für das Gerät). Bildschirm in Safari 1024 x 698 CSS-Pixel quer, Pixeldichte 2. Vom Homescreen ohne Safari-Leisten werden es 1024 x 768.
+
+Ergebnis, alles wie im Konzept erwartet:
+
+- Geht: async/await, fetch, Service Worker, Array.flat, Object.fromEntries, IntersectionObserver, Touch-Events, CSS Grid, position: sticky, overflow-scrolling: touch, Keyframe-Animation (Kasten pulsiert), localStorage.
+- Geht nicht: Optional Chaining, Nullish Coalescing, Class Fields, Wake Lock, Flexbox gap (die zwei Kästen kleben aneinander), CSS min()/clamp(), aspect-ratio, prefers-color-scheme.
+- Emoji: Zahnbürste, Shorts, Drachen und Flamingo erscheinen als Kästchen. Bestätigt die Entscheidung für SVG-Icons.
+- Tippen: Zähler reagiert ohne spürbare Verzögerung (8 Tipps).
+
+Fehlalarm: Die Seite zeigte "CSS Custom Properties: nein". Das war ein Fehler der Prüfmethode (`CSS.supports` mit Custom Property liefert auf alten Safaris false), nicht des Geräts. Safari 12 kann Custom Properties. Die Prüfung wurde am 13.09. durch eine echte Messung ersetzt.
+
+Offen: das Board (`src/index.html`) selbst auf dem iPad öffnen: Farben, Tippen, Elternbereich per Langdruck, Feiersound (Stummschalter aus).
