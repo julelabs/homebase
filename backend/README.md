@@ -34,6 +34,7 @@ Alle Antworten JSON. Datum immer `YYYY-MM-DD` in der Lokalzeit des Tablets.
 
 | Methode | Pfad | Body | Antwort |
 |---|---|---|---|
+| GET | `/health` | | `{status: "ok"}`, ohne Token, ohne DB |
 | GET | `/api/board?date=` | | `{config, day, message}` |
 | PUT | `/api/config` | `{config}` | `{config}` |
 | PUT | `/api/days/:date` | `{checked, own}` | `{day}` |

@@ -6,6 +6,11 @@ defmodule HomebaseWeb.Router do
     plug HomebaseWeb.Plugs.Auth
   end
 
+  scope "/", HomebaseWeb do
+    # Ohne Auth-Plug, damit Fly-Checks und curl ohne Token durchkommen
+    get "/health", HealthController, :show
+  end
+
   scope "/api", HomebaseWeb do
     pipe_through :api
 

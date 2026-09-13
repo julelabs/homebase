@@ -45,11 +45,12 @@ defmodule HomebaseWeb.ApiTest do
     assert get_resp_header(conn, "access-control-allow-origin") == ["*"]
   end
 
-  test "API token protects every route when configured", %{conn: conn} do
+  test "API token protects every route when configured, health stays open", %{conn: conn} do
     Application.put_env(:homebase, :api_token, "geheim")
     on_exit(fn -> Application.delete_env(:homebase, :api_token) end)
 
     assert json_response(get(conn, ~p"/api/board?date=2026-09-13"), 401)
+    assert json_response(get(conn, ~p"/health"), 200) == %{"status" => "ok"}
 
     conn = put_req_header(conn, "authorization", "Bearer geheim")
     assert json_response(get(conn, ~p"/api/board?date=2026-09-13"), 200)
