@@ -10,14 +10,15 @@ defmodule Homebase.Board.Task do
     field :short, :string
     field :icon, :string
     field :position, :integer
-    timestamps(type: :utc_datetime)
   end
 
   def changeset(task, attrs) do
     task
-    |> cast(attrs, [:key, :label, :short, :icon, :position])
-    |> validate_required([:key, :label, :short, :icon, :position])
+    |> cast(attrs, [:key, :label, :short, :icon])
+    |> validate_required([:key, :label, :short, :icon])
     |> validate_length(:label, max: 60)
     |> validate_length(:short, max: 20)
+    |> validate_length(:key, max: 40)
+    |> validate_length(:icon, max: 40)
   end
 end

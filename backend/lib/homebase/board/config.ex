@@ -15,14 +15,19 @@ defmodule Homebase.Board.Config do
 
   Aufgaben und Aktivitäten kommen als geordnete Objekte (Position aus der Tabelle).
   Beim Schreiben behalten bekannte Schlüssel ihre Position, neue werden hinten angehängt.
+  Verweise auf unbekannte Aufgaben oder Aktivitäten werden still verworfen, so wie es
+  das Tablet beim Anzeigen auch tut.
   """
 
   import Ecto.Query
+  alias Ecto.Changeset
   alias Homebase.Repo
   alias Homebase.Board.{Activity, Kid, ScheduleActivity, ScheduleTask, Settings, Task}
 
   @weekdays ~w(mon tue wed thu fri sat sun)
   @phases ~w(morning evening)
+
+  ## Lesen
 
   @doc "Die komplette Config oder nil, solange keine Settings-Zeile existiert (nicht geseedet)."
   def load do
@@ -36,8 +41,27 @@ defmodule Homebase.Board.Config do
     kids = Repo.all(from k in Kid, order_by: k.position)
     tasks = Repo.all(from t in Task, order_by: t.position)
     activities = Repo.all(from a in Activity, order_by: a.position)
-    schedule_tasks = Repo.all(from s in ScheduleTask, order_by: s.position)
-    schedule_activities = Repo.all(ScheduleActivity)
+
+    schedule_tasks =
+      Repo.all(from s in ScheduleTask, order_by: s.position)
+      |> Enum.group_by(&{&1.kid_id, &1.weekday, &1.phase}, & &1.task_key)
+
+    schedule_activities =
+      Repo.all(from a in ScheduleActivity, order_by: a.id)
+      |> Enum.group_by(&{&1.kid_id, &1.weekday}, & &1.activity_key)
+
+    schedule =
+      Map.new(kids, fn kid ->
+        {kid.id,
+         Map.new(@weekdays, fn wd ->
+           {wd,
+            %{
+              "morning" => Map.get(schedule_tasks, {kid.id, wd, "morning"}, []),
+              "evening" => Map.get(schedule_tasks, {kid.id, wd, "evening"}, []),
+              "activities" => Map.get(schedule_activities, {kid.id, wd}, [])
+            }}
+         end)}
+      end)
 
     %{
       "kids" => Enum.map(kids, &kid_to_map/1),
@@ -56,11 +80,11 @@ defmodule Homebase.Board.Config do
              }}
           end
         ),
-      "schedule" => build_schedule(kids, schedule_tasks, schedule_activities),
+      "schedule" => schedule,
       "times" => %{
-        "morningStartsAt" => time_out(settings.morning_starts_at),
-        "eveningStartsAt" => time_out(settings.evening_starts_at),
-        "nightStartsAt" => time_out(settings.night_starts_at)
+        "morningStartsAt" => Calendar.strftime(settings.morning_starts_at, "%H:%M"),
+        "eveningStartsAt" => Calendar.strftime(settings.evening_starts_at, "%H:%M"),
+        "nightStartsAt" => Calendar.strftime(settings.night_starts_at, "%H:%M")
       },
       "sound" => settings.sound
     }
@@ -77,32 +101,7 @@ defmodule Homebase.Board.Config do
     }
   end
 
-  defp build_schedule(kids, schedule_tasks, schedule_activities) do
-    Map.new(kids, fn kid ->
-      days =
-        Map.new(@weekdays, fn wd ->
-          tasks_for = fn phase ->
-            for s <- schedule_tasks,
-                s.kid_id == kid.id and s.weekday == wd and s.phase == phase,
-                do: s.task_key
-          end
-
-          acts =
-            for a <- schedule_activities,
-                a.kid_id == kid.id and a.weekday == wd,
-                do: a.activity_key
-
-          {wd,
-           %{
-             "morning" => tasks_for.("morning"),
-             "evening" => tasks_for.("evening"),
-             "activities" => acts
-           }}
-        end)
-
-      {kid.id, days}
-    end)
-  end
+  ## Schreiben
 
   @doc """
   Ersetzt die komplette Config. Gibt {:error, :invalid} bei unbrauchbaren Daten.
@@ -114,54 +113,163 @@ defmodule Homebase.Board.Config do
         %{"kids" => kids, "tasks" => tasks, "schedule" => schedule, "times" => times} = data
       )
       when is_list(kids) and is_map(tasks) and is_map(schedule) and is_map(times) do
-    activities = Map.get(data, "activities") || %{}
-    sound = Map.get(data, "sound", true)
+    activities = data["activities"] || %{}
+    sound = if is_nil(data["sound"]), do: true, else: data["sound"]
 
     with true <- is_map(activities) and is_boolean(sound),
-         {:ok, times} <- parse_times(times) do
-      task_map = to_map(tasks)
-      activity_map = to_map(activities)
-
-      result =
-        Repo.transaction(fn ->
-          existing_task_positions = positions(Task, :key)
-          existing_activity_positions = positions(Activity, :key)
-
-          Repo.delete_all(ScheduleTask)
-          Repo.delete_all(ScheduleActivity)
-          Repo.delete_all(Activity)
-          Repo.delete_all(Task)
-          Repo.delete_all(Kid)
-
-          kids |> Enum.with_index() |> Enum.each(&insert_kid!/1)
-          tasks |> ordered(existing_task_positions) |> Enum.each(&insert_task!/1)
-          activities |> ordered(existing_activity_positions) |> Enum.each(&insert_activity!/1)
-          insert_schedule!(schedule, kids, task_map, activity_map)
-
-          settings = Repo.one(from s in Settings, limit: 1) || %Settings{}
-          Repo.insert_or_update!(Settings.changeset(settings, Map.put(times, :sound, sound)))
-        end)
-
-      case result do
-        {:ok, _} -> {:ok, load()}
-        {:error, _} -> {:error, :invalid}
-      end
+         {:ok, rows} <- validate(kids, tasks, activities, schedule, times, sound),
+         {:ok, _} <- write(rows) do
+      {:ok, load()}
     else
       _ -> {:error, :invalid}
     end
-  rescue
-    _ in [Ecto.InvalidChangesetError, Ecto.ConstraintError, FunctionClauseError, ArgumentError] ->
-      {:error, :invalid}
   end
 
   def replace(_data), do: {:error, :invalid}
 
-  defp positions(schema, key_field) do
-    Repo.all(from r in schema, select: {field(r, ^key_field), r.position}) |> Map.new()
+  # Prüft alle Eingaben über die Changesets, bevor irgendetwas geschrieben wird.
+  defp validate(kids, tasks, activities, schedule, times, sound) do
+    task_keys = tasks |> Map.new() |> Map.keys() |> MapSet.new()
+    activity_keys = activities |> Map.new() |> Map.keys() |> MapSet.new()
+
+    with {:ok, kid_rows} <- rows(kids |> Enum.with_index(), &kid_changeset/1),
+         {:ok, task_rows} <- rows(ordered(tasks, positions(Task)), &task_changeset/1),
+         {:ok, activity_rows} <-
+           rows(ordered(activities, positions(Activity)), &activity_changeset(&1, task_keys)),
+         {:ok, settings} <- settings_changeset(times, sound) do
+      kid_ids = MapSet.new(kid_rows, & &1.id)
+
+      {:ok,
+       %{
+         kids: kid_rows,
+         tasks: task_rows,
+         activities: activity_rows,
+         schedule: schedule_rows(schedule, kid_ids, task_keys, activity_keys),
+         settings: settings
+       }}
+    end
   end
 
-  defp to_map(%Jason.OrderedObject{values: values}), do: Map.new(values)
-  defp to_map(map) when is_map(map), do: map
+  defp rows(items, to_changeset) do
+    Enum.reduce_while(items, {:ok, []}, fn item, {:ok, acc} ->
+      case Changeset.apply_action(to_changeset.(item), :insert) do
+        {:ok, struct} -> {:cont, {:ok, acc ++ [struct]}}
+        {:error, _} -> {:halt, {:error, :invalid}}
+      end
+    end)
+  end
+
+  defp kid_changeset({kid, position}) when is_map(kid) do
+    %Kid{position: position}
+    |> Kid.changeset(%{
+      id: kid["id"],
+      name: kid["name"],
+      avatar: kid["avatar"],
+      color: kid["color"],
+      literacy: kid["literacy"],
+      can_add_own: Map.get(kid, "canAddOwn", true)
+    })
+  end
+
+  defp kid_changeset(_), do: Changeset.change(%Kid{}) |> Changeset.add_error(:id, "kein Objekt")
+
+  defp task_changeset({key, task, position}) when is_map(task) do
+    %Task{position: position}
+    |> Task.changeset(%{key: key, label: task["label"], short: task["short"], icon: task["icon"]})
+  end
+
+  defp task_changeset(_),
+    do: Changeset.change(%Task{}) |> Changeset.add_error(:key, "kein Objekt")
+
+  # Verweise auf gelöschte Aufgaben werden geleert statt die ganze Config abzulehnen.
+  defp activity_changeset({key, act, position}, task_keys) when is_map(act) do
+    known = fn k -> if MapSet.member?(task_keys, k), do: k end
+
+    %Activity{position: position}
+    |> Activity.changeset(%{
+      key: key,
+      label: act["label"],
+      morning_task_key: known.(act["morning"]),
+      evening_before_task_key: known.(act["eveningBefore"])
+    })
+  end
+
+  defp activity_changeset(_, _),
+    do: Changeset.change(%Activity{}) |> Changeset.add_error(:key, "kein Objekt")
+
+  defp settings_changeset(times, sound) do
+    attrs = %{
+      morning_starts_at: times["morningStartsAt"],
+      evening_starts_at: times["eveningStartsAt"],
+      night_starts_at: times["nightStartsAt"],
+      sound: sound
+    }
+
+    case Changeset.apply_action(Settings.changeset(%Settings{}, attrs), :insert) do
+      {:ok, _} -> {:ok, attrs}
+      {:error, _} -> {:error, :invalid}
+    end
+  end
+
+  defp schedule_rows(schedule, kid_ids, task_keys, activity_keys) do
+    entries =
+      for {kid_id, days} <- schedule,
+          MapSet.member?(kid_ids, kid_id),
+          is_map(days),
+          {wd, day} <- days,
+          wd in @weekdays,
+          is_map(day),
+          do: {kid_id, wd, day}
+
+    tasks =
+      for {kid_id, wd, day} <- entries,
+          phase <- @phases,
+          {task_key, position} <- Enum.with_index(List.wrap(day[phase])),
+          MapSet.member?(task_keys, task_key),
+          do: %{kid_id: kid_id, weekday: wd, phase: phase, task_key: task_key, position: position}
+
+    activities =
+      for {kid_id, wd, day} <- entries,
+          act_key <- List.wrap(day["activities"]),
+          MapSet.member?(activity_keys, act_key),
+          do: %{kid_id: kid_id, weekday: wd, activity_key: act_key}
+
+    %{
+      tasks: Enum.uniq_by(tasks, &{&1.kid_id, &1.weekday, &1.phase, &1.task_key}),
+      activities: Enum.uniq(activities)
+    }
+  end
+
+  # Alles in einer Transaktion ersetzen. Wochenplan-Zeilen fallen über die Fremdschlüssel mit weg.
+  # Der Advisory-Lock reiht überlappende Schreibvorgänge hintereinander, sonst kollidiert
+  # das Neu-Einfügen mit den Primärschlüsseln des noch nicht abgeschlossenen Vorgängers.
+  @config_lock 1
+
+  defp write(rows) do
+    Repo.transaction(fn ->
+      Repo.query!("SELECT pg_advisory_xact_lock($1)", [@config_lock])
+      Repo.delete_all(Kid)
+      Repo.delete_all(Activity)
+      Repo.delete_all(Task)
+
+      Repo.insert_all(Kid, Enum.map(rows.kids, &struct_to_row(&1, Kid)))
+      Repo.insert_all(Task, Enum.map(rows.tasks, &struct_to_row(&1, Task)))
+      Repo.insert_all(Activity, Enum.map(rows.activities, &struct_to_row(&1, Activity)))
+      Repo.insert_all(ScheduleTask, rows.schedule.tasks)
+      Repo.insert_all(ScheduleActivity, rows.schedule.activities)
+
+      settings = Repo.one(from s in Settings, limit: 1) || %Settings{}
+      Repo.insert_or_update!(Settings.changeset(settings, rows.settings))
+    end)
+  end
+
+  defp struct_to_row(struct, schema) do
+    Map.take(struct, schema.__schema__(:fields))
+  end
+
+  defp positions(schema) do
+    Repo.all(from r in schema, select: {r.key, r.position}) |> Map.new()
+  end
 
   # Explizite Reihenfolge: Position ist der Index.
   defp ordered(%Jason.OrderedObject{values: values}, _existing) do
@@ -185,87 +293,4 @@ defmodule Homebase.Board.Config do
 
     known ++ new
   end
-
-  defp insert_kid!({kid, position}) when is_map(kid) do
-    Repo.insert!(
-      Kid.changeset(%Kid{}, %{
-        id: kid["id"],
-        name: kid["name"],
-        avatar: kid["avatar"],
-        color: kid["color"],
-        literacy: kid["literacy"],
-        can_add_own: Map.get(kid, "canAddOwn", true),
-        position: position
-      })
-    )
-  end
-
-  defp insert_task!({key, task, position}) when is_map(task) do
-    Repo.insert!(
-      Task.changeset(%Task{}, %{
-        key: key,
-        label: task["label"],
-        short: task["short"],
-        icon: task["icon"],
-        position: position
-      })
-    )
-  end
-
-  defp insert_activity!({key, act, position}) when is_map(act) do
-    Repo.insert!(
-      Activity.changeset(%Activity{}, %{
-        key: key,
-        label: act["label"],
-        morning_task_key: act["morning"],
-        evening_before_task_key: act["eveningBefore"],
-        position: position
-      })
-    )
-  end
-
-  defp insert_schedule!(schedule, kids, tasks, activities) do
-    kid_ids = Enum.map(kids, & &1["id"])
-
-    for {kid_id, days} <- schedule,
-        kid_id in kid_ids,
-        is_map(days),
-        {wd, day} <- days,
-        wd in @weekdays,
-        is_map(day) do
-      for phase <- @phases,
-          {task_key, position} <- Enum.with_index(List.wrap(day[phase])),
-          Map.has_key?(tasks, task_key) do
-        Repo.insert!(%ScheduleTask{
-          kid_id: kid_id,
-          weekday: wd,
-          phase: phase,
-          task_key: task_key,
-          position: position
-        })
-      end
-
-      for act_key <- List.wrap(day["activities"]), Map.has_key?(activities, act_key) do
-        Repo.insert!(%ScheduleActivity{kid_id: kid_id, weekday: wd, activity_key: act_key})
-      end
-    end
-
-    :ok
-  end
-
-  defp parse_times(times) do
-    with {:ok, morning} <- time_in(times["morningStartsAt"]),
-         {:ok, evening} <- time_in(times["eveningStartsAt"]),
-         {:ok, night} <- time_in(times["nightStartsAt"]) do
-      {:ok, %{morning_starts_at: morning, evening_starts_at: evening, night_starts_at: night}}
-    end
-  end
-
-  # "HH:MM" aus dem Tablet
-  defp time_in(<<h::binary-size(2), ":", m::binary-size(2)>>),
-    do: Time.from_iso8601("#{h}:#{m}:00")
-
-  defp time_in(_), do: {:error, :invalid}
-
-  defp time_out(%Time{} = t), do: t |> Time.to_string() |> String.slice(0, 5)
 end

@@ -519,7 +519,6 @@
     background: #F8F7F4;
     color: #33312D;
   }
-  .p-field textarea { min-height: 90px; font-family: monospace; font-size: 13px; }
   .p-row { display: flex; flex-wrap: wrap; margin: -4px; }
   .p-row > * { margin: 4px; }
   .p-btn {
@@ -806,6 +805,7 @@
         if (res.ok) return res.json();
         var err = new Error('HTTP ' + res.status);
         err.transient = res.status === 429 || res.status === 502 || res.status === 503 || res.status === 504;
+        err.rejected = res.status >= 400 && res.status < 500 && !err.transient;
         throw err;
       }, function () {
         var err = new Error('Netzwerk');
@@ -847,15 +847,17 @@
 
   var toastEl = document.getElementById('toast');
   var toastTimer = null;
-  function reportError() {
-    toastEl.textContent = 'Keine Verbindung zum Server, Änderung nicht gespeichert.';
+  function reportError(err) {
+    toastEl.textContent = err && err.rejected
+      ? 'Der Server hat die Änderung abgelehnt.'
+      : 'Keine Verbindung zum Server, Änderung nicht gespeichert.';
     toastEl.style.display = 'block';
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { toastEl.style.display = 'none'; }, 4000);
   }
 
   /* ============================================================
-     Default-Daten
+     Konstanten: Wochentage, Icons, Farben
      ============================================================ */
   var WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
   var WEEKDAY_ABBR = { mon: 'Mo', tue: 'Di', wed: 'Mi', thu: 'Do', fri: 'Fr', sat: 'Sa', sun: 'So' };
@@ -978,7 +980,7 @@
   // Serverantwort (GET /api/board) in den lokalen Zustand übernehmen.
   // Ohne Config auf dem Server (Seeds fehlen) gibt es nichts zu zeigen: liefert false.
   function applyServerState(state) {
-    if (!state.config || !state.config.kids.length) return false;
+    if (!state.config) return false;
     config = state.config;
     day = state.day;
     message = state.message;
@@ -1842,7 +1844,6 @@
     return out;
   }
 
-  /* ---------- 7. Daten ---------- */
   /* ---------- Event-Bindung Inhalt ---------- */
   function bindSectionEvents() {
     parentContentEl.onclick = function (e) {
@@ -1857,9 +1858,9 @@
       var el = e.target;
       var action = el.getAttribute && el.getAttribute('data-action');
       if (action) handleParentChange(action, el);
-      else if (el.id === 'p-time-evening') { config.times.eveningStartsAt = el.value; saveConfigAndBoard(); }
-      else if (el.id === 'p-time-night-start') { config.times.nightStartsAt = el.value; saveConfigAndBoard(); }
-      else if (el.id === 'p-time-night-end') { config.times.morningStartsAt = el.value; saveConfigAndBoard(); }
+      else if (el.id === 'p-time-evening') { if (el.value) { config.times.eveningStartsAt = el.value; saveConfigAndBoard(); } }
+      else if (el.id === 'p-time-night-start') { if (el.value) { config.times.nightStartsAt = el.value; saveConfigAndBoard(); } }
+      else if (el.id === 'p-time-night-end') { if (el.value) { config.times.morningStartsAt = el.value; saveConfigAndBoard(); } }
       else if (el.id === 'p-sound') { config.sound = !!el.checked; saveConfigAndBoard(); if (config.sound) playDoneChime(); }
       else if (el.id === 'p-sim-time') { parentState.simTimeInput = el.value; applySimFromInputs(); }
       else if (el.id === 'p-sim-day') { parentState.simDayInput = el.value; applySimFromInputs(); }
@@ -1957,6 +1958,11 @@
     } else if (action === 'task-delete') {
       var taskId = el.getAttribute('data-task');
       delete config.tasks[taskId];
+      var actIds = Object.keys(config.activities);
+      for (var a = 0; a < actIds.length; a++) {
+        if (config.activities[actIds[a]].morning === taskId) config.activities[actIds[a]].morning = null;
+        if (config.activities[actIds[a]].eveningBefore === taskId) config.activities[actIds[a]].eveningBefore = null;
+      }
       var kidsIds = Object.keys(config.schedule);
       for (var i = 0; i < kidsIds.length; i++) {
         for (var w = 0; w < WEEKDAYS.length; w++) {
@@ -2037,9 +2043,9 @@
   function boot(attempt) {
     Store.loadBoard(todayKey(now())).then(function (state) {
       if (!applyServerState(state)) {
-        loadingEl.textContent = 'Keine Konfiguration auf dem Server. Seeds einspielen (backend/README.md).';
-        setTimeout(function () { boot(0); }, 10000);
-        return;
+        var unconfigured = new Error('Keine Config auf dem Server');
+        unconfigured.unconfigured = true;
+        throw unconfigured;
       }
       if (startSim) setSim(startSim);
       initColumns();
@@ -2048,8 +2054,10 @@
       render();
       if (urlParam('eltern') === '1') setTimeout(openParent, 100);
       setInterval(tick, 30000);
-    }, function () {
-      loadingEl.textContent = 'Keine Verbindung zum Server, neuer Versuch…';
+    }, function (err) {
+      loadingEl.textContent = err && err.unconfigured
+        ? 'Der Server ist noch nicht eingerichtet, neuer Versuch…'
+        : 'Keine Verbindung zum Server, neuer Versuch…';
       setTimeout(function () { boot(attempt + 1); }, Math.min(10000, 1000 * Math.pow(2, attempt)));
     });
   }

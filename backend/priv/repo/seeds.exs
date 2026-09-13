@@ -4,7 +4,7 @@
 #
 #     mix run priv/repo/seeds.exs      # lokal, auf Fly automatisch bei jedem Deploy (Release.setup)
 #
-# Im Dev-Modus kommen zusätzlich Beispieldaten für heute dazu (Nachricht, Haken, eigene Aufgabe).
+# Beispieldaten für die lokale Entwicklung liegen in dev_seeds.exs.
 
 alias Homebase.Board
 
@@ -93,35 +93,9 @@ default_config = %{
   "sound" => true
 }
 
-if Board.get_config() do
+if Homebase.Repo.exists?(Homebase.Board.Settings) do
   IO.puts("Config vorhanden, Seeds nicht überschrieben.")
 else
   {:ok, _} = Board.put_config(default_config)
   IO.puts("Config aus den Prototyp-Defaults eingespielt.")
-end
-
-if Code.ensure_loaded?(Mix) and Mix.env() == :dev do
-  today = Date.utc_today()
-  {:ok, _} = Board.put_message(today, "Papa holt euch heute ab")
-
-  {:ok, _} =
-    Board.put_day(today, %{
-      # Haken-Schlüssel sind "phase:aufgabe", wie das Tablet sie schreibt
-      "checked" => %{
-        "k1" => %{"morning:zaehne" => true, "evening:zaehne" => true},
-        "k2" => %{"morning:brotbox" => true, "morning:flasche" => true}
-      },
-      "own" => %{
-        "k2" => [
-          %{
-            "id" => "seed-1",
-            "phase" => "morning",
-            "icon" => "library",
-            "label" => "Buch mitnehmen"
-          }
-        ]
-      }
-    })
-
-  IO.puts("Beispieldaten für #{today} eingespielt.")
 end

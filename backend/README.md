@@ -28,7 +28,9 @@ Neue Verbindung, Postgres:
 
 Tabellen: `kids`, `tasks`, `activities`, `schedule_tasks` und `schedule_activities` (Wochenplan), `settings` (Zeiten, Sound, eine Zeile), `checks` (Haken pro Kind, Aufgabe, Tag), `own_tasks` (eigene Aufgaben der Kinder), `messages` (Nachricht pro Tag).
 
-Die Ausgangs-Config kommt aus `priv/repo/seeds.exs` und wird nur eingespielt, wenn noch keine existiert. Auf Fly laufen Migrationen und Seeds bei jedem Deploy automatisch (`release_command` in `fly.toml`).
+Die Ausgangs-Config kommt aus `priv/repo/seeds.exs` und wird nur eingespielt, wenn noch keine existiert. Auf Fly laufen Migrationen und Seeds bei jedem Deploy automatisch (`release_command` in `fly.toml`). Beispieldaten für heute (Nachricht, Haken) liegen in `priv/repo/dev_seeds.exs` und laufen nur über `mix ecto.setup` und `mix ecto.reset`.
+
+`mix ecto.reset` braucht exklusiven Zugriff: vorher TablePlus trennen und den Server stoppen.
 
 ## API
 

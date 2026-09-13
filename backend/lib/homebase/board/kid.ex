@@ -12,14 +12,17 @@ defmodule Homebase.Board.Kid do
     field :literacy, :string
     field :can_add_own, :boolean, default: true
     field :position, :integer
-    timestamps(type: :utc_datetime)
   end
 
+  # Der Name darf leer sein (Feld am Tablet gerade geleert), position setzt der Server.
   def changeset(kid, attrs) do
     kid
-    |> cast(attrs, [:id, :name, :avatar, :color, :literacy, :can_add_own, :position])
-    |> validate_required([:id, :name, :avatar, :color, :literacy, :position])
+    |> cast(attrs, [:id, :name, :avatar, :color, :literacy, :can_add_own], empty_values: [])
+    |> validate_required([:id, :avatar, :color, :literacy])
     |> validate_length(:name, max: 20)
+    |> validate_length(:id, max: 40)
+    |> validate_length(:avatar, max: 40)
+    |> validate_length(:color, max: 40)
     |> validate_inclusion(:literacy, ~w(icons text))
   end
 end

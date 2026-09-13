@@ -3,7 +3,7 @@ defmodule Homebase.Repo.Migrations.RelationalConfig do
 
   # Die Board-Config wandert vom JSON-Dokument in eigene Tabellen.
   # Der bisherige Inhalt war nur die Default-Config aus dem Prototyp, die kommt jetzt aus den Seeds.
-  def change do
+  def up do
     drop table(:configs)
 
     create table(:kids, primary_key: false) do
@@ -14,7 +14,6 @@ defmodule Homebase.Repo.Migrations.RelationalConfig do
       add :literacy, :string, null: false
       add :can_add_own, :boolean, null: false, default: true
       add :position, :integer, null: false
-      timestamps(type: :utc_datetime)
     end
 
     create table(:tasks, primary_key: false) do
@@ -23,7 +22,6 @@ defmodule Homebase.Repo.Migrations.RelationalConfig do
       add :short, :string, null: false
       add :icon, :string, null: false
       add :position, :integer, null: false
-      timestamps(type: :utc_datetime)
     end
 
     # Eine Aktivität (Schwimmen, Sport) erzeugt morgens eine Aufgabe und am Abend davor eine Pack-Aufgabe.
@@ -38,7 +36,6 @@ defmodule Homebase.Repo.Migrations.RelationalConfig do
           references(:tasks, column: :key, type: :string, on_delete: :nilify_all)
 
       add :position, :integer, null: false
-      timestamps(type: :utc_datetime)
     end
 
     # Wochenplan: welche Aufgabe an welchem Wochentag morgens oder abends für ein Kind ansteht.
@@ -72,6 +69,20 @@ defmodule Homebase.Repo.Migrations.RelationalConfig do
       add :evening_starts_at, :time, null: false
       add :night_starts_at, :time, null: false
       add :sound, :boolean, null: false, default: true
+      timestamps(type: :utc_datetime)
+    end
+  end
+
+  def down do
+    drop table(:settings)
+    drop table(:schedule_activities)
+    drop table(:schedule_tasks)
+    drop table(:activities)
+    drop table(:tasks)
+    drop table(:kids)
+
+    create table(:configs) do
+      add :data, :map, null: false
       timestamps(type: :utc_datetime)
     end
   end

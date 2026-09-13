@@ -128,6 +128,19 @@ defmodule Homebase.BoardTest do
       assert config["schedule"]["k1"]["mon"]["evening"] == []
     end
 
+    test "deleting a task an activity refers to clears the reference" do
+      {:ok, _} = Board.put_config(@config)
+      tasks = Map.delete(@config["tasks"], "schwimm_mit")
+      {:ok, config} = Board.put_config(Map.put(@config, "tasks", tasks))
+      assert config["activities"]["swim"]["morning"] == nil
+    end
+
+    test "an empty kid name is allowed while the parent retypes it" do
+      kids = List.update_at(@config["kids"], 0, &Map.put(&1, "name", ""))
+      {:ok, config} = Board.put_config(Map.put(@config, "kids", kids))
+      assert hd(config["kids"])["name"] == ""
+    end
+
     test "rejects incomplete or malformed configs" do
       assert {:error, :invalid} = Board.put_config(%{"kids" => []})
 
@@ -143,6 +156,12 @@ defmodule Homebase.BoardTest do
       }
 
       assert {:error, :invalid} = Board.put_config(Map.put(@config, "kids", [bad_kid]))
+      long_key = String.duplicate("x", 300)
+
+      long_tasks =
+        Map.put(@config["tasks"], long_key, %{"label" => "L", "short" => "L", "icon" => "star"})
+
+      assert {:error, :invalid} = Board.put_config(Map.put(@config, "tasks", long_tasks))
       assert Board.get_config() == nil
     end
   end

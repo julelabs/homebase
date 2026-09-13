@@ -12,14 +12,13 @@ defmodule Homebase.Board.Activity do
     field :morning_task_key, :string
     field :evening_before_task_key, :string
     field :position, :integer
-    timestamps(type: :utc_datetime)
   end
 
   def changeset(activity, attrs) do
     activity
-    |> cast(attrs, [:key, :label, :morning_task_key, :evening_before_task_key, :position])
-    |> validate_required([:key, :label, :position])
-    |> foreign_key_constraint(:morning_task_key)
-    |> foreign_key_constraint(:evening_before_task_key)
+    |> cast(attrs, [:key, :label, :morning_task_key, :evening_before_task_key])
+    |> validate_required([:key, :label])
+    |> validate_length(:key, max: 40)
+    |> validate_length(:label, max: 60)
   end
 end
