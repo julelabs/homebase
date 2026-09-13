@@ -8,13 +8,21 @@
 
 alias Homebase.Board
 
-school_morning = ~w(brotbox flasche schuhe jacke zaehne)
-school_morning_k2 = school_morning ++ ["ranzen"]
+school_morning = ~w(zaehne)
+school_morning_k2 = ~w(zaehne ranzen)
+school_afternoon = ~w(brotbox flasche schuhe jacke)
+school_afternoon_k2 = school_afternoon ++ ["hausaufgaben"]
 evening = ~w(tisch_ab zaehne duschen schlafanzug)
 weekend_morning = ~w(zaehne zimmer)
+weekend_afternoon = []
 
-day = fn morning, evening, activities ->
-  %{"morning" => morning, "evening" => evening, "activities" => activities}
+day = fn morning, afternoon, evening, activities ->
+  %{
+    "morning" => morning,
+    "afternoon" => afternoon,
+    "evening" => evening,
+    "activities" => activities
+  }
 end
 
 task = fn label, short, icon -> %{"label" => label, "short" => short, "icon" => icon} end
@@ -67,27 +75,28 @@ default_config = %{
     ]),
   "schedule" => %{
     "k1" => %{
-      "mon" => day.(school_morning, evening, []),
-      "tue" => day.(school_morning, evening, ["swim"]),
-      "wed" => day.(school_morning, evening, []),
-      "thu" => day.(school_morning, evening, []),
-      "fri" => day.(school_morning, evening, []),
-      "sat" => day.(weekend_morning, evening, []),
-      "sun" => day.(weekend_morning, evening, [])
+      "mon" => day.(school_morning, school_afternoon, evening, []),
+      "tue" => day.(school_morning, school_afternoon, evening, ["swim"]),
+      "wed" => day.(school_morning, school_afternoon, evening, []),
+      "thu" => day.(school_morning, school_afternoon, evening, []),
+      "fri" => day.(school_morning, school_afternoon, evening, []),
+      "sat" => day.(weekend_morning, weekend_afternoon, evening, []),
+      "sun" => day.(weekend_morning, weekend_afternoon, evening, [])
     },
     "k2" => %{
-      "mon" => day.(school_morning_k2, evening, []),
-      "tue" => day.(school_morning_k2, evening, []),
-      "wed" => day.(school_morning_k2, evening, []),
-      "thu" => day.(school_morning_k2, evening, ["sport"]),
-      "fri" => day.(school_morning_k2, evening, []),
-      "sat" => day.(weekend_morning, evening, []),
-      "sun" => day.(weekend_morning, evening, [])
+      "mon" => day.(school_morning_k2, school_afternoon_k2, evening, []),
+      "tue" => day.(school_morning_k2, school_afternoon_k2, evening, []),
+      "wed" => day.(school_morning_k2, school_afternoon_k2, evening, []),
+      "thu" => day.(school_morning_k2, school_afternoon_k2, evening, ["sport"]),
+      "fri" => day.(school_morning_k2, school_afternoon_k2, evening, []),
+      "sat" => day.(weekend_morning, weekend_afternoon, evening, []),
+      "sun" => day.(weekend_morning, weekend_afternoon, evening, [])
     }
   },
   "times" => %{
     "morningStartsAt" => "06:00",
-    "eveningStartsAt" => "12:00",
+    "afternoonStartsAt" => "12:00",
+    "eveningStartsAt" => "17:00",
     "nightStartsAt" => "19:00"
   },
   "sound" => true

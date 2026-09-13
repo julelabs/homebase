@@ -17,11 +17,19 @@ defmodule HomebaseWeb.ApiTest do
     },
     "activities" => %{},
     "schedule" => %{
-      "k1" => %{"mon" => %{"morning" => ["zaehne"], "evening" => [], "activities" => []}}
+      "k1" => %{
+        "mon" => %{
+          "morning" => ["zaehne"],
+          "afternoon" => [],
+          "evening" => [],
+          "activities" => []
+        }
+      }
     },
     "times" => %{
       "morningStartsAt" => "06:00",
-      "eveningStartsAt" => "12:00",
+      "afternoonStartsAt" => "12:00",
+      "eveningStartsAt" => "17:00",
       "nightStartsAt" => "19:00"
     },
     "sound" => true
@@ -48,6 +56,7 @@ defmodule HomebaseWeb.ApiTest do
 
     assert config["schedule"]["k1"]["sun"] == %{
              "morning" => [],
+             "afternoon" => [],
              "evening" => [],
              "activities" => []
            }

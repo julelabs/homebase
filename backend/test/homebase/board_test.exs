@@ -44,15 +44,24 @@ defmodule Homebase.BoardTest do
       "k1" => %{
         "mon" => %{
           "morning" => ["zaehne", "brotbox"],
+          "afternoon" => ["brotbox"],
           "evening" => ["zaehne"],
           "activities" => ["swim"]
         }
       },
-      "k2" => %{"sat" => %{"morning" => ["brotbox"], "evening" => [], "activities" => []}}
+      "k2" => %{
+        "sat" => %{
+          "morning" => ["brotbox"],
+          "afternoon" => [],
+          "evening" => [],
+          "activities" => []
+        }
+      }
     },
     "times" => %{
       "morningStartsAt" => "06:00",
-      "eveningStartsAt" => "12:00",
+      "afternoonStartsAt" => "12:00",
+      "eveningStartsAt" => "17:00",
       "nightStartsAt" => "19:00"
     },
     "sound" => false
@@ -73,12 +82,14 @@ defmodule Homebase.BoardTest do
 
       assert config["schedule"]["k1"]["mon"] == %{
                "morning" => ["zaehne", "brotbox"],
+               "afternoon" => ["brotbox"],
                "evening" => ["zaehne"],
                "activities" => ["swim"]
              }
 
       assert config["schedule"]["k2"]["mon"] == %{
                "morning" => [],
+               "afternoon" => [],
                "evening" => [],
                "activities" => []
              }

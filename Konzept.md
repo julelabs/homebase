@@ -142,3 +142,8 @@ Die Seite läuft tage- oder wochenlang ohne Neuladen. Deshalb: Jede Minute prüf
 - Abendliste für den ersten Test: Tisch abräumen, Zähne putzen, Duschen oder baden, Schlafanzug.
 - Die Config trägt eine Versionsnummer (`CONFIG_VERSION`). Höhere Version ersetzt die gespeicherte Config durch die Defaults.
 - Auch der Sechsjährige hat das Plus. Text im Eingabefenster ist optional, Standardname kommt vom Icon (`ICON_LABELS`).
+
+## Nachtrag 13.09.
+
+- Drei Zeiträume statt zwei: Morgens (bis 12:00), Mittags (bis 17:00), Abends. Grenzen unter Zeiten einstellbar. Die Kopfzeile zeigt Sonnenaufgang, Sonne oder Mond.
+- Backend seit 13.09. (siehe `backend/README.md`): Phoenix-API mit Postgres, Seite bei Cloudflare unter `homebase.breyer.berlin`, API bei Fly.

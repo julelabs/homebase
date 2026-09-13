@@ -7,10 +7,10 @@ defmodule Homebase.Board.Config do
         "tasks" => %{"brotbox" => %{"label" => ..., "short" => ..., "icon" => ...}},
         "activities" => %{"swim" => %{"label" => ..., "morning" => "schwimm_mit",
                                       "eveningBefore" => "schwimm_packen"}},
-        "schedule" => %{"k1" => %{"mon" => %{"morning" => [...], "evening" => [...],
-                                             "activities" => [...]}}},
-        "times" => %{"morningStartsAt" => "06:00", "eveningStartsAt" => "12:00",
-                     "nightStartsAt" => "19:00"},
+        "schedule" => %{"k1" => %{"mon" => %{"morning" => [...], "afternoon" => [...],
+                                             "evening" => [...], "activities" => [...]}}},
+        "times" => %{"morningStartsAt" => "06:00", "afternoonStartsAt" => "12:00",
+                     "eveningStartsAt" => "17:00", "nightStartsAt" => "19:00"},
         "sound" => true}
 
   Aufgaben und Aktivitäten kommen als geordnete Objekte (Position aus der Tabelle).
@@ -25,7 +25,7 @@ defmodule Homebase.Board.Config do
   alias Homebase.Board.{Activity, Kid, ScheduleActivity, ScheduleTask, Settings, Task}
 
   @weekdays ~w(mon tue wed thu fri sat sun)
-  @phases ~w(morning evening)
+  @phases ~w(morning afternoon evening)
 
   ## Lesen
 
@@ -57,6 +57,7 @@ defmodule Homebase.Board.Config do
            {wd,
             %{
               "morning" => Map.get(schedule_tasks, {kid.id, wd, "morning"}, []),
+              "afternoon" => Map.get(schedule_tasks, {kid.id, wd, "afternoon"}, []),
               "evening" => Map.get(schedule_tasks, {kid.id, wd, "evening"}, []),
               "activities" => Map.get(schedule_activities, {kid.id, wd}, [])
             }}
@@ -83,6 +84,7 @@ defmodule Homebase.Board.Config do
       "schedule" => schedule,
       "times" => %{
         "morningStartsAt" => Calendar.strftime(settings.morning_starts_at, "%H:%M"),
+        "afternoonStartsAt" => Calendar.strftime(settings.afternoon_starts_at, "%H:%M"),
         "eveningStartsAt" => Calendar.strftime(settings.evening_starts_at, "%H:%M"),
         "nightStartsAt" => Calendar.strftime(settings.night_starts_at, "%H:%M")
       },
@@ -200,6 +202,7 @@ defmodule Homebase.Board.Config do
   defp settings_changeset(times, sound) do
     attrs = %{
       morning_starts_at: times["morningStartsAt"],
+      afternoon_starts_at: times["afternoonStartsAt"],
       evening_starts_at: times["eveningStartsAt"],
       night_starts_at: times["nightStartsAt"],
       sound: sound

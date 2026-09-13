@@ -14,7 +14,7 @@ defmodule Homebase.Board do
   alias Homebase.Repo
   alias Homebase.Board.{Check, Config, Message, OwnTask}
 
-  @phases ~w(morning evening)
+  @phases ~w(morning afternoon evening)
 
   ## Config
 

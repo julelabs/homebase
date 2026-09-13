@@ -733,6 +733,11 @@
       <circle cx="19" cy="27" r="1.6" fill="currentColor" stroke="none"/>
     </symbol>
 
+    <symbol id="i-sunrise" viewBox="0 0 48 48">
+      <path d="M6 34h36"/>
+      <path d="M13 34a11 11 0 0 1 22 0"/>
+      <path d="M24 8v6M9 18l4 4M39 18l-4 4M4 26h4M40 26h4"/>
+    </symbol>
     <symbol id="i-sun" viewBox="0 0 48 48">
       <circle cx="24" cy="24" r="9"/>
       <path d="M24 4v6M24 38v6M4 24h6M38 24h6M9 9l4 4M35 35l4 4M39 9l-4 4M13 35l-4 4"/>
@@ -998,9 +1003,19 @@
   }
   function timeStr(d) { return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
 
+  // Drei Zeitraeume: morgens bis afternoonStartsAt, mittags bis eveningStartsAt, danach abends
+  var PHASES = ['morning', 'afternoon', 'evening'];
+  var PHASE_LABELS = { morning: 'Morgens', afternoon: 'Mittags', evening: 'Abends' };
+  var PHASE_ICONS = { morning: 'sunrise', afternoon: 'sun', evening: 'moon' };
   function phaseFor(d, times) {
-    return minutesOfDate(d) < minutesOfStr(times.eveningStartsAt) ? 'morning' : 'evening';
+    var m = minutesOfDate(d);
+    var afternoonAt = minutesOfStr(times.afternoonStartsAt || times.eveningStartsAt);
+    var eveningAt = minutesOfStr(times.eveningStartsAt);
+    if (m < afternoonAt) return 'morning';
+    if (m < eveningAt) return 'afternoon';
+    return 'evening';
   }
+  function phaseIcon(phase) { return PHASE_ICONS[phase] || 'sun'; }
   function isNightFor(d, times) {
     var m = minutesOfDate(d);
     var nightStart = minutesOfStr(times.nightStartsAt);
@@ -1144,7 +1159,7 @@
           if (beforeId && base.indexOf(beforeId) === -1) base.push(beforeId);
         }
       }
-    } else {
+    } else if (phase === 'morning') {
       var todayActs = (sched[wd] && sched[wd].activities) || [];
       for (var j = 0; j < actKeys.length; j++) {
         if (todayActs.indexOf(actKeys[j]) !== -1) {
@@ -1236,8 +1251,8 @@
 
     headerDateEl.textContent = d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
     var phase = phaseFor(d, config.times);
-    headerPhaseIconEl.querySelector('use').setAttribute('xlink:href', phase === 'morning' ? '#i-sun' : '#i-moon');
-    headerPhaseIconEl.querySelector('use').setAttribute('href', phase === 'morning' ? '#i-sun' : '#i-moon');
+    headerPhaseIconEl.querySelector('use').setAttribute('xlink:href', '#i-' + phaseIcon(phase));
+    headerPhaseIconEl.querySelector('use').setAttribute('href', '#i-' + phaseIcon(phase));
 
     if (message && message.date === todayKey(d) && message.text) {
       headerMessageEl.textContent = message.text;
@@ -1382,7 +1397,7 @@
   function renderDoneView(kid, phase) {
     return '<div class="done-view" data-role="peek" data-kid="' + kid.id + '">' +
       iconUse(kid.avatar, 'done-avatar') +
-      iconUse(phase === 'morning' ? 'sun' : 'moon', 'done-phase-icon') +
+      iconUse(phaseIcon(phase), 'done-phase-icon') +
       '<div class="done-text">Fertig für heute</div>' +
       '</div>';
   }
@@ -1800,19 +1815,15 @@
     var schedDay = config.schedule[parentState.wpKid][parentState.wpDay];
     var taskIds = Object.keys(config.tasks);
 
-    out += '<h2 style="font-size:17px">Morgens</h2>';
-    out += '<div style="margin-bottom:18px">';
-    for (var m = 0; m < taskIds.length; m++) {
-      out += renderScheduleCheckLine(taskIds[m], schedDay.morning, 'morning');
+    for (var p = 0; p < PHASES.length; p++) {
+      var ph = PHASES[p];
+      out += '<h2 style="font-size:17px">' + PHASE_LABELS[ph] + '</h2>';
+      out += '<div style="margin-bottom:18px">';
+      for (var m = 0; m < taskIds.length; m++) {
+        out += renderScheduleCheckLine(taskIds[m], schedDay[ph] || [], ph);
+      }
+      out += '</div>';
     }
-    out += '</div>';
-
-    out += '<h2 style="font-size:17px">Abends</h2>';
-    out += '<div style="margin-bottom:18px">';
-    for (var e = 0; e < taskIds.length; e++) {
-      out += renderScheduleCheckLine(taskIds[e], schedDay.evening, 'evening');
-    }
-    out += '</div>';
 
     var actKeys = Object.keys(config.activities);
     out += '<h2 style="font-size:17px">Aktivitäten an diesem Tag</h2>';
@@ -1891,6 +1902,7 @@
   /* ---------- 5. Zeiten ---------- */
   function renderSectionTimes() {
     return '<h2>Zeiten</h2>' +
+      '<div class="p-field"><label>Mittagsliste ab</label><input type="time" id="p-time-afternoon" value="' + esc(config.times.afternoonStartsAt || '12:00') + '"></div>' +
       '<div class="p-field"><label>Abendliste ab</label><input type="time" id="p-time-evening" value="' + esc(config.times.eveningStartsAt) + '"></div>' +
       '<div class="p-field"><label>Nachtmodus ab</label><input type="time" id="p-time-night-start" value="' + esc(config.times.nightStartsAt) + '"></div>' +
       '<div class="p-field"><label>Nachtmodus bis</label><input type="time" id="p-time-night-end" value="' + esc(config.times.morningStartsAt) + '"></div>' +
@@ -1932,6 +1944,7 @@
       var el = e.target;
       var action = el.getAttribute && el.getAttribute('data-action');
       if (action) handleParentChange(action, el);
+      else if (el.id === 'p-time-afternoon') { if (el.value) { config.times.afternoonStartsAt = el.value; saveConfigAndBoard(); } }
       else if (el.id === 'p-time-evening') { if (el.value) { config.times.eveningStartsAt = el.value; saveConfigAndBoard(); } }
       else if (el.id === 'p-time-night-start') { if (el.value) { config.times.nightStartsAt = el.value; saveConfigAndBoard(); } }
       else if (el.id === 'p-time-night-end') { if (el.value) { config.times.morningStartsAt = el.value; saveConfigAndBoard(); } }
@@ -1981,7 +1994,7 @@
     if (action === 'wp-task') {
       var taskId = el.getAttribute('data-task');
       var phase = el.getAttribute('data-phase');
-      var arr = config.schedule[parentState.wpKid][parentState.wpDay][phase];
+      var arr = config.schedule[parentState.wpKid][parentState.wpDay][phase] || [];
       var set = {};
       for (var i = 0; i < arr.length; i++) set[arr[i]] = true;
       if (el.checked) set[taskId] = true; else delete set[taskId];

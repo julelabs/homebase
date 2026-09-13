@@ -48,6 +48,7 @@ Elternbereich: drei Sekunden auf die obere rechte Ecke drücken. Per JavaScript 
 - `Store` mit `loadBoard`/`saveConfig`/`saveDay`/`saveMessage`: die einzige Stelle, die die API anfasst. `apiRequest` wiederholt bei Netzfehlern und 502/503/504 mit Backoff. Kein localStorage.
 - `boot()`: lädt den Zustand, zeigt bis dahin `#loading`, versucht es ohne Verbindung weiter. `tick()` alle 30 Sekunden: Datumswechsel, `refresh()` vom Server, Render.
 - Haken, eigene Aufgaben und Nachricht gelten erst nach Serverbestätigung (`commitDay`, `commitMessage`). Bis dahin ist die Zeile `pending`. Config-Änderungen im Elternbereich gelten sofort lokal und werden im Hintergrund gespeichert.
+- Phasen: `PHASES = ['morning', 'afternoon', 'evening']` mit `PHASE_LABELS` (Morgens, Mittags, Abends) und `PHASE_ICONS`. `phaseFor()` vergleicht mit `afternoonStartsAt` und `eveningStartsAt`. Backend: `@phases` in `board.ex` und `config.ex`, Spalte `afternoon_starts_at` in `settings`.
 - `now()`: die einzige Zeitquelle, berücksichtigt die Simulation. Nie `new Date()` direkt für Logik nehmen.
 - `commitDay(next)` statt direkter Mutation von `day`: schickt den ganzen Tag, übernimmt die Serverantwort. In der Simulation bleibt der Zustand nur im Speicher.
 - `render()` baut Kopf und beide Spalten neu. Event-Delegation auf dem Board (`onBoardClick`), Rollen über `data-role`.

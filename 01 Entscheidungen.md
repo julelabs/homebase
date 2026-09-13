@@ -6,6 +6,8 @@ Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Je
 
 | Entscheidung | Warum | Status |
 |---|---|---|
+| Dritter Zeitraum "Mittags" zwischen Morgens und Abends (`afternoon`). Grenzen: Mittagsliste ab 12:00, Abendliste ab 17:00, beides unter Zeiten einstellbar. Kopfzeile: Sonnenaufgang, Sonne, Mond | Nach der Schule passieren andere Dinge als vor der Schule (Brotbox in die Küche, Hausaufgaben) | umgesetzt am 13.09. abends. Bestehender Wochenplan bleibt unverändert, Mittags-Aufgaben werden im Elternbereich zugewiesen. Neue Seeds legen Brotbox, Flasche, Schuhe, Jacke (und Hausaufgaben) mittags an |
+| Aktivitäten (Schwimmen, Sport) bleiben zweiteilig: Mitnehmen-Aufgabe morgens, Packen-Aufgabe am Vorabend. Kein Mittags-Anteil | Sportbeutel kommt mittags mit nach Hause, das ist keine Aufgabe | gesetzt |
 | Backend: Phoenix als JSON-API mit Postgres in `backend/`, SPA bleibt eine Datei bei Cloudflare Pages, Backend bei Fly mit Scale-to-zero, vorhandene Postgres | Nachricht vom Handy und Zustand für die Eltern brauchen einen Server; Elixir ist der Hausstack | umgesetzt, Fly-App noch nicht angelegt |
 | Datenmodell: Config als ein JSON-Dokument, Haken, eigene Aufgaben und Nachricht als Tabellen pro Tag | Config ändert sich selten und als Ganzes, der Tageszustand soll in TablePlus lesbar sein | ersetzt, siehe unten |
 | Config relational: Tabellen `kids`, `tasks`, `activities`, `schedule_tasks`, `schedule_activities`, `settings`. Die API liefert und nimmt weiter das Tablet-Format, der Server übersetzt | JSON-Blob war in TablePlus nicht lesbar und für den späteren Admin-Bereich ungeeignet | umgesetzt |
