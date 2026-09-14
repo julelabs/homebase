@@ -24,6 +24,17 @@ Ergebnis:
 
 (hier eintragen)
 
+## Test 2: 2026-09-13, Abend, iPad im Flur (Online-Version)
+
+Rückmeldung der Kinder und Eltern:
+
+- Eigene Aufgaben müssen löschbar sein (Verklicken, falsch angelegt). Der versteckte Langdruck wurde nicht gefunden. Behoben am 14.09.: sichtbares ×.
+- Mehr Avatare gewünscht, zweiter Kaktus, mehr Brawl-Stars-Richtung. Behoben: sechs neue.
+- Farben zu gedeckt. Behoben: kräftigere Palette, Grenze "nicht wie ein Spielautomat".
+- Schwimmen (Brille) wurde als Eule gelesen. Behoben: Schwimmring.
+- Nachtmodus in Braun kam nicht an. Behoben am 13.09. spät: dunkles Blau.
+- Langdruck für den Elternbereich funktioniert auf dem iPad online. Feiersound kam nicht, geparkt.
+
 ## Gerätecheck iPad
 
 `src/check.html` auf dem iPad geöffnet am: 2026-09-13, 17:03, über `homebase.breyer.berlin` in Safari (nicht vom Homescreen).

@@ -2,6 +2,15 @@
 
 Reverse chronologisch innerhalb eines Tages nicht nötig, einfach nach Datum. Jede Zeile: was, warum, Status. Wenn etwas rückgängig gemacht wird, alte Zeile stehen lassen und neue Zeile ergänzen.
 
+## 2026-09-14
+
+| Entscheidung | Warum | Status |
+|---|---|---|
+| Eigene Aufgaben haben ein sichtbares × (links oben im Tile, in der Zeile vor dem Haken). Ein Tipp löscht sofort, ohne Dialog. Der 1,5-Sekunden-Langdruck bleibt zusätzlich | Stakeholder-Feedback: "hinzugefügt = für immer da" nervt, den Langdruck hat niemand gefunden | umgesetzt |
+| Palette kräftiger, aber nicht grell: Salbei #7FB877, Staubblau #6C9FD6, Sand #DDB35F, Mauve #B487C8, Terrakotta #DE8E68, Olive #A9B54A, Schiefer #7796B5, Rosé #E28A96, Petrol #4FB0A9, Ocker #DBA531, jeweils mit dunklerer Nachtvariante. Gilt für Kind-Farben und Icon-Füllungen gleich | Kinder fanden die Farben zu gedeckt; Grenze nach oben: kein Spielautomat im Flur | umgesetzt |
+| Schwimmen ist ein Schwimmring auf einer Welle statt einer Schwimmbrille | Die Brille wurde als Eule gelesen | umgesetzt |
+| Sechs weitere Avatare: Kugelkaktus, Sheriff, Ninja, Geist, Roboter 2, Alien (jetzt 18) | Wunsch nach zweitem Kaktus und mehr Brawl-Stars-Richtung | umgesetzt |
+
 ## 2026-09-13
 
 | Entscheidung | Warum | Status |
