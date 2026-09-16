@@ -12,6 +12,7 @@ Alles in diesem Ordner (`Flur-Tablet/` im Vault "Julia"):
 - `Konzept.md`: Produktkonzept, Constraints, Backend-Optionen.
 - `Anleitung Tech-Lead.md`: aufs iPad bringen, Geräteeinstellungen, Server starten.
 - `03 Testprotokoll.md`: Beobachtungen aus den Tests mit den Kindern.
+- `04 Session-Start.md`: Prompt zum Kopieren für kleinere Arbeiten mit Sonnet oder Haiku, inklusive Eskalationsregeln.
 
 Repo: [github.com/julelabs/Homebase](https://github.com/julelabs/Homebase) (public, Account julelabs). Julias Mann (`klausbreyer`) hat Admin-Rechte als Collaborator, eingeladen am 12.09.2026.
 
