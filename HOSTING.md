@@ -15,6 +15,8 @@ Die Frontpage läuft seit 17.10.2026 auf Bunny Static Sites:
 Änderungen an `src/`, `bunny.jsonc` oder am Frontend-Workflow auf `main`.
 Anschließend vergleicht es beide ausgelieferten HTML-Dateien über HTTPS mit dem
 Repository. Laufende Deployments werden nicht abgebrochen.
+Nach erfolgreicher Prüfung räumt der Workflow alte Bunny-Deployments mit
+`--keep 3` auf. Die aktuelle und die vorherige Version bleiben immer erhalten.
 
 Das GitHub-Secret `BUNNYNET_API_KEY` stammt aus dem angemeldeten lokalen
 Bunny-CLI-Profil. Cloudflare-Secrets werden für das Frontend nicht mehr benötigt.
