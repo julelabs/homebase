@@ -2,7 +2,7 @@
 # Wird nur eingespielt, wenn noch keine Config existiert, damit Änderungen aus dem
 # Elternbereich bei einem erneuten Lauf nicht überschrieben werden.
 #
-#     mix run priv/repo/seeds.exs      # lokal, auf Fly automatisch bei jedem Deploy (Release.setup)
+#     mix run priv/repo/seeds.exs      # lokal, im Container automatisch beim Start (Release.setup)
 #
 # Beispieldaten für die lokale Entwicklung liegen in dev_seeds.exs.
 

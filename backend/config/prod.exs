@@ -1,6 +1,6 @@
 import Config
 
-# Kein force_ssl: HTTPS erzwingt Fly am Edge (force_https in fly.toml). Der interne
+# Kein force_ssl: HTTPS erzwingt Bunny am CDN-Endpunkt. Der interne
 # Health-Check kommt per HTTP und darf nicht umgeleitet werden.
 
 # Do not print debug messages in production

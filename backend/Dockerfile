@@ -45,6 +45,7 @@ EXPOSE 8080
 COPY --from=builder --chown=appuser:appuser /app/_build/prod/rel/homebase ./
 # CA-Zertifikat der Datenbank, Pfad aus sslrootcert in DATABASE_URL (relativ zu /app)
 COPY --chown=appuser:appuser sqlca.pem ./sqlca.pem
+COPY --chown=appuser:appuser --chmod=755 rel/start.sh ./bin/start
 
 USER appuser
-CMD ["/app/bin/homebase", "start"]
+CMD ["/app/bin/start"]

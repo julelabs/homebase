@@ -1,5 +1,5 @@
 defmodule Homebase.Release do
-  @moduledoc "Migrationen und Seeds aus dem Release heraus ausführen (Fly release_command)."
+  @moduledoc "Migrationen und Seeds vor dem Start des Release ausführen."
   @app :homebase
 
   @doc "Migrationen ausführen, danach priv/repo/seeds.exs (legt die Config nur an, wenn keine existiert)."
