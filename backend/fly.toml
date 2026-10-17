@@ -1,3 +1,4 @@
+# Rollback reference only. Production deployments use bunny.json and CI.
 app = "homebase-api"
 
 [build]

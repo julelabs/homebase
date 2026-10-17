@@ -60,6 +60,12 @@ jobs:
       - run: mix format --check-formatted
       - run: mix test
 
+      - name: Deployment checks
+        working-directory: .
+        run: |
+          sh -n backend/rel/start.sh
+          python3 -m unittest discover -s scripts/tests
+
       # Safari 12 auf dem iPad: keine moderne Syntax im Prototyp
       - name: SPA lint (Safari 12) and syntax check
         working-directory: .

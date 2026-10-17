@@ -2,6 +2,7 @@
 """Deploy a pinned image to the existing Bunny app, preserving its secrets."""
 
 import argparse
+from datetime import date
 import json
 import os
 from pathlib import Path
@@ -64,7 +65,8 @@ def check_http(url, token):
     if token:
         headers["Authorization"] = "Bearer " + token
     # The board endpoint verifies connectivity to the existing database as well.
-    for path, expected in (("/health", "status"), ("/api/board", "config")):
+    board_path = "/api/board?date=" + date.today().isoformat()
+    for path, expected in (("/health", "status"), (board_path, "config")):
         request = urllib.request.Request(url + path, headers=headers)
         for attempt in range(10):
             try:
