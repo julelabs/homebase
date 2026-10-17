@@ -1,0 +1,50 @@
+name: Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/**
+      - bunny.jsonc
+      - .github/workflows/frontend.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bunny-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publish frontend to Bunny
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Safari 12 compatibility and JavaScript syntax
+        run: |
+          if grep -nE '\?\.|\?\?|Object\.fromEntries|replaceAll' src/index.html; then
+            echo "Syntax gefunden, die Safari 12 nicht kann"; exit 1
+          fi
+          python3 -c "import re;s=open('src/index.html',encoding='utf-8').read();open('/tmp/flur.js','w',encoding='utf-8').write(re.search(r'<script>(.*)</script>',s,re.S).group(1))"
+          node --check /tmp/flur.js
+      - run: npm install --global @bunny.net/cli@0.19.0
+      - name: Deploy static files
+        env:
+          BUNNYNET_API_KEY: ${{ secrets.BUNNYNET_API_KEY }}
+        run: bunny sites deploy --no-link --output json
+      - name: Verify published files over HTTPS
+        run: |
+          for file in index.html check.html; do
+            curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 5 \
+              --dump-header /tmp/frontend-headers.txt \
+              "https://homebase.breyer.berlin/$file?deploy=$GITHUB_SHA" -o "/tmp/$file"
+            cmp "src/$file" "/tmp/$file"
+            grep -qi '^server: BunnyCDN' /tmp/frontend-headers.txt
+          done

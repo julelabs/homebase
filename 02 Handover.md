@@ -16,6 +16,12 @@ Alles in diesem Ordner (`Flur-Tablet/` im Vault "Julia"):
 
 Repo: [github.com/julelabs/Homebase](https://github.com/julelabs/Homebase) (public, Account julelabs). Julias Mann (`klausbreyer`) hat Admin-Rechte als Collaborator, eingeladen am 12.09.2026.
 
+## Hosting
+
+Die Seite läuft auf Bunny unter https://homebase.breyer.berlin. Deployment, DNS
+und Rückweg sind in `HOSTING.md` beschrieben. Das Backend läuft ebenfalls auf Bunny,
+Postgres weiterhin auf dem bestehenden Hetzner-Server.
+
 ## Rollen
 
 Julia: Produkt, UI/UX, Tests mit den Kindern. Ihr Mann: Technik, Backend, Einbau. Claude: Konzept und Verifikation (Fable), Umsetzung nach Spec (Sonnet). Größere UI-Änderungen an Sonnet mit klarer Spec geben und die Safari-12-Regeln aus [[Konzept]] mitgeben. Kleine gezielte Edits direkt machen.

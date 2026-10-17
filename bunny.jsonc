@@ -1,0 +1,7 @@
+{
+  "sites": {
+    "name": "homebase",
+    "dir": "./src",
+    "spa": false
+  }
+}
