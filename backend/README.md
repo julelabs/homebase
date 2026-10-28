@@ -61,6 +61,23 @@ Bunny-Containerkonfiguration. Die Datenbankverbindung verwendet auf Bunny IPv4
 (`ECTO_IPV6=false`). Ein optionales `API_TOKEN` bleibt bei Deployments ebenfalls
 erhalten.
 
+Das Container-Image setzt `RELEASE_MODE=interactive`: Kompilierte Module werden
+erst bei ihrer ersten Verwendung geladen. Das reduziert den RAM-Bedarf, während
+der erste Aufruf eines Moduls dessen Ladezeit trägt. Alle konfigurierten
+Anwendungen starten weiterhin. Die Einstellung gilt für den Serverstart;
+Migrationen und Seeds laufen wie bisher vorab über `eval`.
+
+Den RAM-Verbrauch nach einem Deployment erst vergleichen, wenn der alte Pod
+beendet ist und `/health` sowie `/api/board?date=YYYY-MM-DD` aufgerufen wurden.
+Die Pod-Werte stehen unter `regions[].pods[].ramUsageBytes` in:
+
+```sh
+bunny api GET /mc/apps/yCv3OlaYMqaVlGf/overview
+```
+
+Für einen Vergleich mit dem bisherigen Ladeverhalten kann die
+Container-Umgebungsvariable auf `RELEASE_MODE=embedded` gesetzt werden.
+
 `.github/workflows/ci.yml` führt bei Pull Requests die Backend-Tests, SPA-Prüfung
 und Deployment-Tests aus. Auf `main` baut es danach das Linux-amd64-Image
 `ghcr.io/julelabs/homebase-api:<commit-sha>`, deployt dessen exakten Digest und
