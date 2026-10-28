@@ -40,6 +40,7 @@ RUN useradd -m appuser && chown appuser /app
 ENV MIX_ENV=prod
 ENV PHX_SERVER=true
 ENV PORT=8080
+ENV RELEASE_MODE=interactive
 EXPOSE 8080
 
 COPY --from=builder --chown=appuser:appuser /app/_build/prod/rel/homebase ./
